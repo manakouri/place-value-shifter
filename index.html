@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Place Value Shifter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="login-screen">
+    <h1>Place Value Shifter</h1>
+    <input type="text" id="game-code" placeholder="Enter Game Code" />
+    <input type="text" id="team-name" placeholder="Enter Team Name" />
+    <button id="login-btn">Join Game</button>
+  </div>
+
+  <div id="game-screen" class="hidden">
+    <div id="header">
+      <h2 id="team-display"></h2>
+      <button id="toggle-leaderboard">Toggle Leaderboard</button>
+    </div>
+
+    <div id="question-area">
+      <div id="question-text">Loading question...</div>
+      <div id="answer-options"></div>
+    </div>
+
+    <div id="place-value-table">
+      <h3>Place Value Table</h3>
+      <table>
+        <tr>
+          <th>Thousands</th>
+          <th>Hundreds</th>
+          <th>Tens</th>
+          <th>Ones</th>
+          <th>Decimal</th>
+          <th>Tenths</th>
+          <th>Hundredths</th>
+          <th>Thousandths</th>
+        </tr>
+        <tr>
+          <td>1,000</td>
+          <td>100</td>
+          <td>10</td>
+          <td>1</td>
+          <td>.</td>
+          <td>0.1</td>
+          <td>0.01</td>
+          <td>0.001</td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="leaderboard" class="hidden">
+      <h3>Leaderboard</h3>
+      <ul id="leaderboard-list"></ul>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
