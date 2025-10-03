@@ -4,57 +4,70 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Place Value Shifter</title>
-  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div id="login-screen">
-    <h1>Place Value Shifter</h1>
-    <input type="text" id="game-code" placeholder="Enter Game Code" />
-    <input type="text" id="team-name" placeholder="Enter Team Name" />
-    <button id="login-btn">Join Game</button>
-  </div>
+<body class="bg-[#4CC9F0] flex items-center justify-center min-h-screen p-4">
 
-  <div id="game-screen" class="hidden">
-    <div id="header">
-      <h2 id="team-display"></h2>
-      <button id="toggle-leaderboard">Toggle Leaderboard</button>
+  <div id="game-container" class="w-full max-w-4xl bg-white rounded-xl shadow-lg p-6 text-center">
+
+    <!-- Login Screen -->
+    <div id="login-screen">
+      <h1 class="text-4xl font-bold text-[#F72585] mb-6">Place Value Shifter</h1>
+      <input type="text" id="game-code" placeholder="Enter Game Code" class="w-full mb-4 p-3 border-2 border-gray-300 rounded-lg text-lg" />
+      <input type="text" id="team-name" placeholder="Enter Team Name" class="w-full mb-6 p-3 border-2 border-gray-300 rounded-lg text-lg" />
+      <button id="login-btn" class="w-full bg-[#7209B7] text-white font-bold py-3 rounded-lg text-xl">Join Game</button>
     </div>
 
-    <div id="question-area">
-      <div id="question-text">Loading question...</div>
-      <div id="answer-options"></div>
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="team-display" class="text-2xl font-bold text-[#3A0CA3]"></h2>
+        <button id="toggle-leaderboard" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg">Toggle Leaderboard</button>
+      </div>
+
+      <div id="question-area" class="mb-6">
+        <div id="question-text" class="text-2xl font-semibold text-gray-800 mb-4">Loading question...</div>
+        <div id="answer-options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <div id="place-value-table" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">Place Value Table</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-center border-collapse">
+            <thead class="bg-[#4361EE] text-white">
+              <tr>
+                <th>Thousands</th>
+                <th>Hundreds</th>
+                <th>Tens</th>
+                <th>Ones</th>
+                <th>Decimal</th>
+                <th>Tenths</th>
+                <th>Hundredths</th>
+                <th>Thousandths</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white text-gray-700">
+              <tr>
+                <td>1,000</td>
+                <td>100</td>
+                <td>10</td>
+                <td>1</td>
+                <td>.</td>
+                <td>0.1</td>
+                <td>0.01</td>
+                <td>0.001</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="leaderboard" class="hidden">
+        <h3 class="text-xl font-bold text-[#F72585] mb-2">Leaderboard</h3>
+        <ul id="leaderboard-list" class="text-left text-lg text-gray-800"></ul>
+      </div>
     </div>
 
-    <div id="place-value-table">
-      <h3>Place Value Table</h3>
-      <table>
-        <tr>
-          <th>Thousands</th>
-          <th>Hundreds</th>
-          <th>Tens</th>
-          <th>Ones</th>
-          <th>Decimal</th>
-          <th>Tenths</th>
-          <th>Hundredths</th>
-          <th>Thousandths</th>
-        </tr>
-        <tr>
-          <td>1,000</td>
-          <td>100</td>
-          <td>10</td>
-          <td>1</td>
-          <td>.</td>
-          <td>0.1</td>
-          <td>0.01</td>
-          <td>0.001</td>
-        </tr>
-      </table>
-    </div>
-
-    <div id="leaderboard" class="hidden">
-      <h3>Leaderboard</h3>
-      <ul id="leaderboard-list"></ul>
-    </div>
   </div>
 
   <script src="script.js"></script>
