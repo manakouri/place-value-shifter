@@ -11,7 +11,19 @@ function showCreateScreen() {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('game-screen').classList.add('hidden');
   generateGameCode();
-  updateTeamList();
+
+  const gameCode = document.getElementById('generated-game-code').textContent;
+
+  db.collection("games").doc(gameCode).collection("teams")
+    .onSnapshot(snapshot => {
+      const teamList = document.getElementById('team-list');
+      teamList.innerHTML = '';
+      snapshot.forEach(doc => {
+        const li = document.createElement('li');
+        li.textContent = doc.data().name;
+        teamList.appendChild(li);
+      });
+    });
 }
 
 function generateGameCode() {
