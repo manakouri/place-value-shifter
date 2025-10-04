@@ -12,7 +12,7 @@ function showCreateScreen() {
   document.getElementById('game-screen').classList.add('hidden');
   generateGameCode();
 
-  const gameCode = document.getElementById('generated-game-code').textContent;
+  const gameCode = localStorage.getItem('currentGameCode');
 
   db.collection("games").doc(gameCode).collection("teams")
     .onSnapshot(snapshot => {
@@ -29,6 +29,7 @@ function showCreateScreen() {
 function generateGameCode() {
   const code = Math.random().toString(36).substring(2, 8).toUpperCase();
   document.getElementById('generated-game-code').textContent = code;
+  localStorage.setItem('currentGameCode', code); // ✅ Store it
 }
 
 window.showJoinScreen = showJoinScreen;
