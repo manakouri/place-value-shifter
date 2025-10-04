@@ -1,41 +1,3 @@
-function showJoinScreen() {
-  document.getElementById('initial-screen').classList.add('hidden');
-  document.getElementById('login-screen').classList.remove('hidden');
-}
-
-function showCreateScreen() {
-  document.getElementById('initial-screen').classList.add('hidden');
-  document.getElementById('create-game-screen').classList.remove('hidden');
-  generateGameCode();
-}
-
-function generateGameCode() {
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-  document.getElementById('generated-game-code').textContent = code;
-}
-
-function toggleLeaderboard() {
-  document.getElementById('leaderboard').classList.toggle('hidden');
-}
-
-function startGame() {
-  document.getElementById('create-game-screen').classList.add('hidden');
-  document.getElementById('game-screen').classList.remove('hidden');
-  loadNextQuestion();
-}
-
-document.getElementById('login-btn').addEventListener('click', () => {
-  const gameCode = document.getElementById('game-code').value.trim();
-  const teamName = document.getElementById('team-name').value.trim();
-
-  if (gameCode && teamName) {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('game-screen').classList.remove('hidden');
-    document.getElementById('team-display').textContent = `Team: ${teamName}`;
-    loadNextQuestion();
-  }
-});
-
 const questionText = document.getElementById('question-text');
 const answerContainer = document.getElementById('answer-options');
 const scoreDisplay = document.getElementById('score-display');
@@ -43,6 +5,17 @@ const scoreDisplay = document.getElementById('score-display');
 let teamScore = 0;
 let correctCount = 0;
 let totalQuestions = 0;
+
+function startGame() {
+  document.getElementById('create-game-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  teamScore = 0;
+  correctCount = 0;
+  totalQuestions = 0;
+  updateScore();
+  updateLeaderboard();
+  loadNextQuestion();
+}
 
 function loadNextQuestion() {
   const { question, correctAnswer, options } = generateQuestion();
@@ -106,13 +79,15 @@ function generateQuestion() {
   let base, result, question, correctAnswer;
 
   if (chosen.type === 'whole') {
-    base = Math.floor(Math.random() * 90 + 10);
+    base = Math.floor(Math.random() * 90 + 10); // 10–99
   } else {
-    base = parseFloat((Math.random() * 9 + 0.1).toFixed(2));
+    const whole = Math.floor(Math.random() * 9 + 1); // 1–9
+    const decimal = Math.floor(Math.random() * 9 + 1); // 1–9
+    base = parseFloat(`${whole}.${decimal}`);
   }
 
   if (isMultiply) {
-    result = parseFloat((base * factor).toFixed(2));
+    result = base * factor;
     if (unknownPosition === 0) {
       question = `${base} × ${factor} = ?`;
       correctAnswer = result.toString();
@@ -124,7 +99,7 @@ function generateQuestion() {
       correctAnswer = base.toString();
     }
   } else {
-    result = parseFloat((base / factor).toFixed(2));
+    result = base / factor;
     if (unknownPosition === 0) {
       question = `${base} ÷ ${factor} = ?`;
       correctAnswer = result.toString();
@@ -150,7 +125,13 @@ function generatePlaceValueOptions(correct) {
     const shuffled = digits.slice().sort(() => Math.random() - 0.5);
     const decimalIndex = Math.floor(Math.random() * (shuffled.length - 1)) + 1;
     shuffled.splice(decimalIndex, 0, '.');
-    const variant = shuffled.join('');
+    let variant = shuffled.join('');
+
+    // Clean up leading zeros
+    if (variant.startsWith('00')) {
+      variant = variant.replace(/^0+/, '0');
+    }
+
     if (!variations.has(variant)) {
       variations.add(variant);
     }
