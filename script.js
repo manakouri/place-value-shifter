@@ -251,6 +251,10 @@ async function endGame() {
   });
 }
 
+function formatNumber(num) {
+  return parseFloat(num).toFixed(6).replace(/\.?0+$/, '');
+}
+
 function generateQuestion() {
   const powersOfTen = [10, 100, 1000, 0.1, 0.01];
   const unknownPosition = Math.floor(Math.random() * 3);
@@ -274,10 +278,6 @@ function generateQuestion() {
     while (n.length < decimalPlaces + 1) n = "0" + n;
     const insertAt = n.length - decimalPlaces;
     return insertAt === n.length ? n : n.slice(0, insertAt) + "." + n.slice(insertAt);
-  }
-
-  function formatNumber(str) {
-    return parseFloat(str).toFixed(6).replace(/\.?0+$/, '');
   }
 
   const formattedBase = formatNumber(base);
@@ -308,7 +308,7 @@ function generateQuestion() {
 function generatePowerOfTenOptions(correct) {
   const allPowers = [10, 100, 1000, 0.1, 0.01];
   const variations = new Set();
-  variations.add(correct);
+  variations.add(formatNumber(correct));
 
   while (variations.size < 4) {
     const distractor = allPowers[Math.floor(Math.random() * allPowers.length)];
@@ -337,4 +337,8 @@ function generatePlaceValueOptions(correct, digits) {
   return Array.from(options)
     .sort(() => Math.random() - 0.5)
     .slice(0, 4);
+  while (variations.size < 4 && attempts < 20) {
+  // generate variants
+}
+
 }
