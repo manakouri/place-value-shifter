@@ -29,7 +29,7 @@ function showCreateScreen() {
 function generateGameCode() {
   const code = Math.random().toString(36).substring(2, 8).toUpperCase();
   document.getElementById('generated-game-code').textContent = code;
-  localStorage.setItem('currentGameCode', code); // ✅ Store it
+  localStorage.setItem('currentGameCode', code);
 }
 
 window.showJoinScreen = showJoinScreen;
@@ -70,7 +70,6 @@ document.getElementById('login-btn').addEventListener('click', () => {
       li.textContent = teamName;
       teamList.appendChild(li);
 
-      // ✅ INSERT FIREBASE CODE HERE
       db.collection("games").doc(gameCode).collection("teams").doc(teamName).set({
         name: teamName,
         joinedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -99,7 +98,6 @@ document.getElementById('login-btn').addEventListener('click', () => {
   }
 });
 
-
 function loadNextQuestion() {
   const { question, correctAnswer, options } = generateQuestion();
 
@@ -110,7 +108,7 @@ function loadNextQuestion() {
     options.forEach(ans => {
       const btn = document.createElement('button');
       btn.textContent = ans;
-      btn.className = "bg-[#1B9AAA] text-white font-bold py-4 rounded-xl text-xl";
+      btn.className = "bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl text-xl hover:bg-cyan-700 transition";
       btn.onclick = () => {
         const isCorrect = ans === correctAnswer;
         handleAnswer(isCorrect);
