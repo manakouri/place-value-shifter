@@ -4,52 +4,35 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Place Value Shifter</title>
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
-    authDomain: "place-value-shifter.firebaseapp.com",
-    projectId: "place-value-shifter",
-    storageBucket: "place-value-shifter.firebasestorage.app",
-    messagingSenderId: "388817467603",
-    appId: "1:388817467603:web:26f323802399f959dd7c26",
-    measurementId: "G-TMZC74RWR2"
-  };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
+  <!-- Firebase SDK (non-module version) -->
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
+      authDomain: "place-value-shifter.firebaseapp.com",
+      projectId: "place-value-shifter",
+      storageBucket: "place-value-shifter.appspot.com",
+      messagingSenderId: "388817467603",
+      appId: "1:388817467603:web:26f323802399f959dd7c26"
+    };
 
-  <style>
-    body {
-      background-color: #F5F1E3;
-      color: #050505;
-    }
-    .btn {
-      background-color: #1B9AAA;
-      color: #FFFFFF;
-    }
-    .box {
-      background-color: #DDDBCB;
-    }
-  </style>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 text-gray-900">
 
-  <div id="game-container" class="w-full max-w-4xl bg-white rounded-xl shadow-lg p-6 text-center space-y-6">
-
-    <h1 class="text-5xl font-bold text-[#1B9AAA]">Place Value Shifter</h1>
-
-    <!-- Initial Screen -->
-    <div id="initial-screen">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <button onclick="showJoinScreen()" class="btn">Join a Game</button>
-        <button onclick="showCreateScreen()" class="btn">Create a New Game</button>
-      </div>
-    </div>
-
+  <!-- Initial Screen -->
+  <div id="initial-screen" class="flex flex-col items-center justify-center h-screen space-y-6">
+    <h1 class="text-4xl font-bold text-[#1B9AAA]">Place Value Shifter</h1>
+    <button onclick="showJoinScreen()" class="bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl text-xl hover:bg-cyan-700 transition">Join a Game</button>
+    <button onclick="showCreateScreen()" class="bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl text-xl hover:bg-cyan-700 transition">Create a New Game</button>
+  </div>
     <!-- Create Game Screen -->
     <div id="create-game-screen" class="hidden space-y-6 text-left">
       <p class="text-2xl font-bold">Game Code: <span id="generated-game-code" class="text-[#1B9AAA]">ABC123</span></p>
