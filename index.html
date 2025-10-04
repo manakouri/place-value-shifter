@@ -48,23 +48,23 @@
     }
   </style>
 
-  <!-- Firebase Modular SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
-      authDomain: "place-value-shifter.firebaseapp.com",
-      projectId: "place-value-shifter",
-      storageBucket: "place-value-shifter.appspot.com",
-      messagingSenderId: "388817467603",
-      appId: "1:388817467603:web:26f323802399f959dd7c26"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
+    authDomain: "place-value-shifter.firebaseapp.com",
+    projectId: "place-value-shifter",
+    storageBucket: "place-value-shifter.appspot.com",
+    messagingSenderId: "388817467603",
+    appId: "1:388817467603:web:26f323802399f959dd7c26"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    window.db = getFirestore(app); // Make Firestore globally accessible
-  </script>
+  const app = initializeApp(firebaseConfig);
+  window.db = getFirestore(app); // ✅ expose Firestore globally
+</script>
+
 </head>
 <body>
 
