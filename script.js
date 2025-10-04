@@ -214,12 +214,12 @@ async function endGame() {
 
 function generateQuestion() {
   const types = [
-    { type: 'whole', factors: [10, 100], id: 'whole10' },
-    { type: 'decimal', factors: [10, 100], id: 'decimal10' },
-    { type: 'whole', factors: [1000], id: 'whole1000' },
-    { type: 'decimal', factors: [1000], id: 'decimal1000' },
-    { type: 'whole', factors: [0.1, 0.01], id: 'wholePoint1' },
-    { type: 'decimal', factors: [0.1, 0.01], id: 'decimalPoint1' }
+    { type: 'whole', id: 'whole10', places: [0, 1, 2] },     // e.g., 82, 8.2, 0.82
+    { type: 'decimal', id: 'decimal10', places: [1, 2, 3] }, // e.g., 8.2, 0.82, 0.082
+    { type: 'whole', id: 'whole1000', places: [0, 1, 2, 3] },
+    { type: 'decimal', id: 'decimal1000', places: [1, 2, 3, 4] },
+    { type: 'whole', id: 'wholePoint1', places: [0, 1, 2] },
+    { type: 'decimal', id: 'decimalPoint1', places: [1, 2, 3] }
   ];
 
   const selectedTypes = types.filter(t => document.querySelector(`input[value="${t.id}"]`)?.checked);
@@ -228,68 +228,90 @@ function generateQuestion() {
   }
 
   const chosen = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
-  const factor = chosen.factors[Math.floor(Math.random() * chosen.factors.length)];
-  const isMultiply = Math.random() < 0.5;
+  const digit1 = Math.floor(Math.random() * 9) + 1; // 1-9
+  const digit2 = Math.floor(Math.random() * 9) + 1; // 1-9
+  const digits = `${digit1}${digit2}`; // always two digits (could expand to three)
+  // pick three unique place values from the chosen.places
+  const places = chosen.places.slice();
+  while (places.length < 3) places.push(places[0]); // in case there are fewer than 3
+  const shuffledPlaces = places.sort(() => Math.random() - 0.5);
+  const [placeA, placeB, placeC] = shuffledPlaces;
+
+  // Helper to create a number string with decimal point at the right place
+  function makeNumber(digs, decimalPlaces) {
+    let n = digs;
+    while (n.length < decimalPlaces + 1) n = "0" + n;
+    const insertAt = n.length - decimalPlaces;
+    return insertAt === n.length
+      ? n
+      : n.slice(0, insertAt) + "." + n.slice(insertAt);
+  }
+
+  // Format as number with up to three decimal places (removes floating point errors)
+  function formatNumber(str) {
+    return parseFloat(str).toFixed(3).replace(/\.?0+$/, "");
+  }
+
+  // Pick which slot is unknown
   const unknownPosition = Math.floor(Math.random() * 3);
 
-  let base, result, question, correctAnswer;
+  // Assign values
+  const vals = [
+    makeNumber(digits, placeA), // base
+    makeNumber(digits, placeB), // factor/result
+    makeNumber(digits, placeC)  // result/factor
+  ].map(formatNumber);
 
-  if (chosen.type === 'whole') {
-    base = Math.floor(Math.random() * 90 + 10);
+  let question, correctAnswer;
+
+  if (unknownPosition === 0) {
+    question = `? × ${vals[1]} = ${vals[2]}`;
+    correctAnswer = vals[0];
+  } else if (unknownPosition === 1) {
+    question = `${vals[0]} × ? = ${vals[2]}`;
+    correctAnswer = vals[1];
   } else {
-    const whole = Math.floor(Math.random() * 9 + 1);
-    const decimal = Math.floor(Math.random() * 9 + 1);
-    base = parseFloat(`${whole}.${decimal}`);
+    question = `${vals[0]} × ${vals[1]} = ?`;
+    correctAnswer = vals[2];
   }
 
-  if (isMultiply) {
-    result = base * factor;
+  // Division variant, randomize whether it's multiply or divide
+  if (Math.random() < 0.5) {
+    // Division: a ÷ b = c
     if (unknownPosition === 0) {
-      question = `${base} × ${factor} = ?`;
-      correctAnswer = result.toString();
+      question = `? ÷ ${vals[1]} = ${vals[2]}`;
+      correctAnswer = vals[0];
     } else if (unknownPosition === 1) {
-      question = `${base} × ? = ${result}`;
-      correctAnswer = factor.toString();
+      question = `${vals[0]} ÷ ? = ${vals[2]}`;
+      correctAnswer = vals[1];
     } else {
-      question = `? × ${factor} = ${result}`;
-      correctAnswer = base.toString();
-    }
-  } else {
-    result = base / factor;
-    if (unknownPosition === 0) {
-      question = `${base} ÷ ${factor} = ?`;
-      correctAnswer = result.toString();
-    } else if (unknownPosition === 1) {
-      question = `${base} ÷ ? = ${result}`;
-      correctAnswer = factor.toString();
-    } else {
-      question = `? ÷ ${factor} = ${result}`;
-      correctAnswer = base.toString();
+      question = `${vals[0]} ÷ ${vals[1]} = ?`;
+      correctAnswer = vals[2];
     }
   }
 
-  const options = generatePlaceValueOptions(correctAnswer);
+  const options = generatePlaceValueOptions(correctAnswer, digits);
+
   return { question, correctAnswer, options };
 }
-function generatePlaceValueOptions(correct) {
-  const digits = correct.replace('.', '').split('');
-  const variations = new Set();
-  variations.add(correct);
 
-  while (variations.size < 4) {
-    const shuffled = digits.slice().sort(() => Math.random() - 0.5);
-    const decimalIndex = Math.floor(Math.random() * (shuffled.length - 1)) + 1;
-    shuffled.splice(decimalIndex, 0, '.');
-    let variant = shuffled.join('');
-
-    if (variant.startsWith('00')) {
-      variant = variant.replace(/^0+/, '0');
-    }
-
-    if (!variations.has(variant)) {
-      variations.add(variant);
-    }
+// Improved options generator: only permutes decimal locations for the same digits
+function generatePlaceValueOptions(correct, digits) {
+  const options = new Set();
+  for (let d = 0; d <= digits.length; d++) {
+    const val = parseFloat(
+      d === digits.length
+        ? digits
+        : digits.slice(0, digits.length - d) + "." + digits.slice(digits.length - d)
+    )
+      .toFixed(3)
+      .replace(/\.?0+$/, "");
+    options.add(val);
   }
-
-  return Array.from(variations).sort(() => Math.random() - 0.5);
-} // closes generatePlaceValueOptions()
+  // Ensure the correct answer is in the set
+  options.add(correct);
+  // Shuffle and select 4 options
+  return Array.from(options)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4);
+}
