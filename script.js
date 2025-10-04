@@ -1,8 +1,10 @@
+// Screen toggling
 function showJoinScreen() {
   document.getElementById('initial-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('create-game-screen').classList.add('hidden');
   document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('final-leaderboard').classList.add('hidden');
 }
 
 function showCreateScreen() {
@@ -10,11 +12,11 @@ function showCreateScreen() {
   document.getElementById('create-game-screen').classList.remove('hidden');
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('game-screen').classList.add('hidden');
-  generateGameCode();
+  document.getElementById('final-leaderboard').classList.add('hidden');
 
+  generateGameCode();
   const gameCode = localStorage.getItem('currentGameCode');
 
-  // Modular Firestore API
   const gamesCollectionRef = collection(db, "games");
   const gameDocRef = doc(gamesCollectionRef, gameCode);
   const teamsCollectionRef = collection(gameDocRef, "teams");
@@ -22,7 +24,6 @@ function showCreateScreen() {
   onSnapshot(teamsCollectionRef, (snapshot) => {
     const teamList = document.getElementById('team-list');
     teamList.innerHTML = '';
-    console.log('Snapshot triggered')
     snapshot.forEach(doc => {
       const li = document.createElement('li');
       li.textContent = doc.data().name;
@@ -40,6 +41,7 @@ function generateGameCode() {
 window.showJoinScreen = showJoinScreen;
 window.showCreateScreen = showCreateScreen;
 
+// Game state
 const questionText = document.getElementById('question-text');
 const answerContainer = document.getElementById('answer-options');
 const scoreDisplay = document.getElementById('score-display');
@@ -52,6 +54,7 @@ let totalQuestions = 0;
 let teamsJoined = [];
 let gameStarted = false;
 
+// Start game button
 document.getElementById('start-game-btn').addEventListener('click', () => {
   gameStarted = true;
   document.getElementById('create-game-screen').classList.add('hidden');
@@ -63,49 +66,36 @@ document.getElementById('start-game-btn').addEventListener('click', () => {
   loadNextQuestion();
 });
 
-document.getElementById('login-btn').addEventListener('click', async () => { // Add 'async' here
-    const gameCode = document.getElementById('game-code').value.trim();
-    const teamName = document.getElementById('team-name').value.trim();
+// Join game button
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const gameCode = document.getElementById('game-code').value.trim();
+  const teamName = document.getElementById('team-name').value.trim();
 
-    if (gameCode && teamName) {
-      if (!teamsJoined.includes(teamName)) {
-        teamsJoined.push(teamName);
+  if (gameCode && teamName && !teamsJoined.includes(teamName)) {
+    teamsJoined.push(teamName);
 
-        // ✅ Save to Firestore (MODULAR API)
-        try {
-          // 1. Get a reference to the 'games' collection
-          const gamesCollectionRef = collection(db, "games");
-          // 2. Get a reference to the specific game document (e.g., gameCode)
-          const gameDocRef = doc(gamesCollectionRef, gameCode);
-          // 3. Get a reference to the 'teams' subcollection within that game
-          const teamsSubCollectionRef = collection(gameDocRef, "teams");
-          // 4. Get a reference to the specific team document (e.g., teamName)
-          const teamDocRef = doc(teamsSubCollectionRef, teamName);
+    try {
+      const gamesCollectionRef = collection(db, "games");
+      const gameDocRef = doc(gamesCollectionRef, gameCode);
+      const teamsSubCollectionRef = collection(gameDocRef, "teams");
+      const teamDocRef = doc(teamsSubCollectionRef, teamName);
 
-          // 5. Use setDoc to write the data
-          await setDoc(teamDocRef, { // Add 'await' here
-            name: teamName,
-            joinedAt: serverTimestamp() // Modular way to get a server timestamp
-          });
+      await setDoc(teamDocRef, {
+        name: teamName,
+        joinedAt: serverTimestamp()
+      });
 
-          console.log(`Team '${teamName}' successfully added to game '${gameCode}'!`);
-
-          // ✅ Update local team list UI (optional for joiner screen)
-          const teamList = document.getElementById('team-list');
-          if (teamList) {
-            const li = document.createElement('li');
-            li.textContent = teamName;
-            teamList.appendChild(li);
-          }
-        } catch (error) {
-          console.error("Error writing team to Firestore: ", error);
-        }
+      const teamList = document.getElementById('team-list');
+      if (teamList) {
+        const li = document.createElement('li');
+        li.textContent = teamName;
+        teamList.appendChild(li);
       }
+    } catch (error) {
+      console.error("Error writing team to Firestore:", error);
     }
-  }
 
-
-    // ✅ Show waiting screen
+    // Show waiting screen
     document.getElementById('login-screen').innerHTML = `
       <div class="max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center">
         <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
@@ -114,7 +104,6 @@ document.getElementById('login-btn').addEventListener('click', async () => { // 
       </div>
     `;
 
-    // ✅ Poll for game start
     const checkStartInterval = setInterval(() => {
       if (gameStarted) {
         clearInterval(checkStartInterval);
@@ -129,12 +118,11 @@ document.getElementById('login-btn').addEventListener('click', async () => { // 
       }
     }, 1000);
   }
-}); // <-- closes the event listener function
+});
 
-
+// Question logic
 function loadNextQuestion() {
   const { question, correctAnswer, options } = generateQuestion();
-
   questionText.textContent = question;
   answerContainer.innerHTML = '';
 
@@ -158,7 +146,6 @@ function handleAnswer(isCorrect) {
     correctCount++;
     teamScore += 10;
   }
-
   updateScore();
 
   if (totalQuestions >= 10) {
@@ -174,7 +161,6 @@ function updateScore() {
 
 function endGame() {
   document.getElementById('game-screen').classList.add('hidden');
-  document.getElementById('create-game-screen').classList.remove('hidden');
   finalLeaderboard.classList.remove('hidden');
   finalLeaderboardList.innerHTML = `
     <li><strong>Score:</strong> ${teamScore}</li>
@@ -184,6 +170,7 @@ function endGame() {
   `;
 }
 
+// Question generator
 function generateQuestion() {
   const types = [
     { type: 'whole', factors: [10, 100], id: 'whole10' },
@@ -236,29 +223,6 @@ function generateQuestion() {
     }
   }
 
-  const options = generatePlaceValueOptions(correctAnswer);
+    const options = generatePlaceValueOptions(correctAnswer);
   return { question, correctAnswer, options };
-}
-
-function generatePlaceValueOptions(correct) {
-  const digits = correct.replace('.', '').split('');
-  const variations = new Set();
-  variations.add(correct);
-
-  while (variations.size < 4) {
-    const shuffled = digits.slice().sort(() => Math.random() - 0.5);
-    const decimalIndex = Math.floor(Math.random() * (shuffled.length - 1)) + 1;
-    shuffled.splice(decimalIndex, 0, '.');
-    let variant = shuffled.join('');
-
-    if (variant.startsWith('00')) {
-      variant = variant.replace(/^0+/, '0');
-    }
-
-    if (!variations.has(variant)) {
-      variations.add(variant);
-    }
-  }
-
-  return Array.from(variations).sort(() => Math.random() - 0.5);
 }
