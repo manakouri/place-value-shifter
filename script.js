@@ -253,17 +253,12 @@ async function endGame() {
 
 function generateQuestion() {
   const powersOfTen = [10, 100, 1000, 0.1, 0.01];
-  const unknownPosition = Math.floor(Math.random() * 3); // 0 = a, 1 = b, 2 = c
+  const unknownPosition = Math.floor(Math.random() * 3);
   const isMultiply = Math.random() < 0.5;
 
-  // Generate digit string (e.g. "84", "506")
   const digitLength = Math.random() < 0.5 ? 2 : 3;
   const digits = Array.from({ length: digitLength }, () => Math.floor(Math.random() * 9) + 1).join('');
 
-  // Choose a power of ten
-  const factor = powersOfTen[Math.floor(Math.random() * powersOfTen.length)];
-
-  // Create base number with decimal point
   const decimalPlaces = Math.floor(Math.random() * (digitLength + 1));
   let baseStr = digits;
   if (decimalPlaces > 0) {
@@ -271,11 +266,20 @@ function generateQuestion() {
     baseStr = baseStr.slice(0, baseStr.length - decimalPlaces) + '.' + baseStr.slice(baseStr.length - decimalPlaces);
   }
   const base = parseFloat(baseStr);
-
-  // Compute result
+  const factor = powersOfTen[Math.floor(Math.random() * powersOfTen.length)];
   const result = isMultiply ? base * factor : base / factor;
 
-  // Format values
+  function makeNumber(digs, decimalPlaces) {
+    let n = digs;
+    while (n.length < decimalPlaces + 1) n = "0" + n;
+    const insertAt = n.length - decimalPlaces;
+    return insertAt === n.length ? n : n.slice(0, insertAt) + "." + n.slice(insertAt);
+  }
+
+  function formatNumber(str) {
+    return parseFloat(str).toFixed(6).replace(/\.?0+$/, '');
+  }
+
   const formattedBase = formatNumber(base);
   const formattedFactor = formatNumber(factor);
   const formattedResult = formatNumber(result);
@@ -301,11 +305,6 @@ function generateQuestion() {
   return { question, correctAnswer, options };
 }
 
-function formatNumber(num) {
-  return parseFloat(num).toFixed(6).replace(/\.?0+$/, '');
-}
-
-
 function generatePowerOfTenOptions(correct) {
   const allPowers = [10, 100, 1000, 0.1, 0.01];
   const variations = new Set();
@@ -318,47 +317,6 @@ function generatePowerOfTenOptions(correct) {
 
   return Array.from(variations).sort(() => Math.random() - 0.5);
 }
-
-  const unknownPosition = Math.floor(Math.random() * 3);
-
-  const vals = [
-    makeNumber(digits, placeA),
-    makeNumber(digits, placeB),
-    makeNumber(digits, placeC)
-  ].map(formatNumber);
-
-  let question, correctAnswer;
-
-  if (Math.random() < 0.5) {
-    // Multiplication
-    if (unknownPosition === 0) {
-      question = `? × ${vals[1]} = ${vals[2]}`;
-      correctAnswer = vals[0];
-    } else if (unknownPosition === 1) {
-      question = `${vals[0]} × ? = ${vals[2]}`;
-      correctAnswer = vals[1];
-    } else {
-      question = `${vals[0]} × ${vals[1]} = ?`;
-      correctAnswer = vals[2];
-    }
-  } else {
-    // Division
-    if (unknownPosition === 0) {
-      question = `? ÷ ${vals[1]} = ${vals[2]}`;
-      correctAnswer = vals[0];
-    } else if (unknownPosition === 1) {
-      question = `${vals[0]} ÷ ? = ${vals[2]}`;
-      correctAnswer = vals[1];
-    } else {
-      question = `${vals[0]} ÷ ${vals[1]} = ?`;
-      correctAnswer = vals[2];
-    }
-  }
-
-  const options = generatePlaceValueOptions(correctAnswer, digits);
-  return { question, correctAnswer, options };
-}
-
 
 // Improved options generator: only permutes decimal locations for the same digits
 function generatePlaceValueOptions(correct, digits) {
