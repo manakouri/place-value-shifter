@@ -68,18 +68,23 @@ let countdownInterval = null;
 // Host starts game
 document.getElementById('start-game-btn').addEventListener('click', async () => {
   const gameCode = localStorage.getItem('currentGameCode');
-  const gameDuration = parseInt(document.getElementById('time-select').value); // in seconds
+  const gameDuration = parseInt(document.getElementById('time-select').value);
   const gameEndsAt = Date.now() + gameDuration * 1000;
+
+  // ✅ Collect selected question types
+  const selectedTypes = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+    .map(cb => cb.value);
 
   await setDoc(doc(db, "games", gameCode), {
     gameStarted: true,
-    gameEndsAt: gameEndsAt
+    gameEndsAt: gameEndsAt,
+    questionTypes: selectedTypes
   }, { merge: true });
 
-  // ✅ Host stays on create screen and sees countdown + live leaderboard
   startCountdown(gameDuration);
   activateLiveLeaderboard(gameCode);
 });
+
 
 // Joiner joins game
 document.getElementById('login-btn').addEventListener('click', async () => {
@@ -98,6 +103,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
         joinedAt: serverTimestamp()
       });
 
+      // ✅ Show waiting screen
       const waitingContainer = document.createElement('div');
       waitingContainer.className = "max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center";
       waitingContainer.innerHTML = `
@@ -108,8 +114,13 @@ document.getElementById('login-btn').addEventListener('click', async () => {
       document.getElementById('login-screen').innerHTML = '';
       document.getElementById('login-screen').appendChild(waitingContainer);
 
+      // ✅ Place this block here
+      let allowedTypes = [];
+
       onSnapshot(gameDocRef, (docSnap) => {
         if (docSnap.exists() && docSnap.data().gameStarted) {
+          allowedTypes = docSnap.data().questionTypes || [];
+
           const endTime = docSnap.data().gameEndsAt;
           const remaining = Math.floor((endTime - Date.now()) / 1000);
 
@@ -225,15 +236,15 @@ async function endGame() {
 
 function generateQuestion() {
   const types = [
-    { type: 'whole', id: 'whole10', places: [0, 1, 2] },     // e.g., 82, 8.2, 0.82
-    { type: 'decimal', id: 'decimal10', places: [1, 2, 3] }, // e.g., 8.2, 0.82, 0.082
-    { type: 'whole', id: 'whole1000', places: [0, 1, 2, 3] },
-    { type: 'decimal', id: 'decimal1000', places: [1, 2, 3, 4] },
-    { type: 'whole', id: 'wholePoint1', places: [0, 1, 2] },
-    { type: 'decimal', id: 'decimalPoint1', places: [1, 2, 3] }
+    { type: 'whole', factors: [10, 100], id: 'whole10' },
+    { type: 'decimal', factors: [10, 100], id: 'decimal10' },
+    { type: 'whole', factors: [1000], id: 'whole1000' },
+    { type: 'decimal', factors: [1000], id: 'decimal1000' },
+    { type: 'whole', factors: [0.1, 0.01], id: 'wholePoint1' },
+    { type: 'decimal', factors: [0.1, 0.01], id: 'decimalPoint1' }
   ];
 
-  const selectedTypes = types.filter(t => document.querySelector(`input[value="${t.id}"]`)?.checked);
+  const selectedTypes = types.filter(t => allowedTypes.includes(t.id));
   if (selectedTypes.length === 0) {
     return { question: "No question types selected.", correctAnswer: "", options: [] };
   }
