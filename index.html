@@ -87,34 +87,60 @@
   </div>
 
   <!-- Create Game Screen -->
-  <div id="create-game-screen" class="hidden space-y-6 text-left">
-      <p class="text-2xl font-bold">Game Code: <span id="generated-game-code" class="text-[#1B9AAA]">ABC123</span></p>
+  <!-- Create Game Screen -->
+<div id="create-game-screen" class="hidden flex flex-col items-center justify-center h-screen">
+  <div class="card text-left space-y-6 w-full max-w-xl">
+    <h2 class="text-2xl font-bold text-[#1B9AAA] text-center">Create Game</h2>
 
-      <label class="block font-semibold text-xl">Game Duration (minutes):</label>
-      <select id="game-duration" class="w-full p-3 border rounded-lg text-lg">
-        <option value="3">3</option>
-        <option value="5">5</option>
-        <option value="10">10</option>
-        <option value="15">15</option>
-      </select>
+    <!-- Game Code Display -->
+    <p class="text-lg text-center">Game Code: <span id="generated-game-code" class="font-mono text-xl"></span></p>
 
-      <label class="block font-semibold text-xl">Question Types:</label>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <label><input type="checkbox" value="whole10" checked /> Whole ×/÷ 10, 100</label>
-        <label><input type="checkbox" value="decimal10" checked /> Decimal ×/÷ 10, 100</label>
-        <label><input type="checkbox" value="whole1000" /> Whole ×/÷ 1000</label>
-        <label><input type="checkbox" value="decimal1000" /> Decimal ×/÷ 1000</label>
-        <label><input type="checkbox" value="wholePoint1" /> Whole ×/÷ 0.1, 0.01</label>
-        <label><input type="checkbox" value="decimalPoint1" /> Decimal ×/÷ 0.1, 0.01</label>
-      </div>
-
-      <button id="start-game-btn" class="btn w-full py-4 rounded-lg text-xl font-bold">Start Game</button>
-
-      <div id="final-leaderboard" class="hidden mt-6">
-        <h3 class="text-xl font-bold text-[#1B9AAA] mb-2">Game Summary</h3>
-        <ul id="final-leaderboard-list" class="text-left text-lg text-gray-800"></ul>
+    <!-- Question Type Selection -->
+    <div>
+      <h3 class="text-lg font-semibold mb-2">Select Question Types:</h3>
+      <div class="grid grid-cols-2 gap-2">
+        <label><input type="checkbox" value="whole10" checked /> Whole ×10 or ÷10</label>
+        <label><input type="checkbox" value="decimal10" checked /> Decimal ×10 or ÷10</label>
+        <label><input type="checkbox" value="whole1000" /> Whole ×1000 or ÷1000</label>
+        <label><input type="checkbox" value="decimal1000" /> Decimal ×1000 or ÷1000</label>
+        <label><input type="checkbox" value="wholePoint1" /> Whole ×0.1 or ÷0.1</label>
+        <label><input type="checkbox" value="decimalPoint1" /> Decimal ×0.1 or ÷0.1</label>
       </div>
     </div>
+
+    <!-- Time Selection -->
+    <div>
+      <h3 class="text-lg font-semibold mb-2">Select Game Duration:</h3>
+      <select id="time-select" class="w-full border border-gray-300 rounded px-4 py-2 text-lg">
+        <option value="60">1 minute</option>
+        <option value="120">2 minutes</option>
+        <option value="180">3 minutes</option>
+        <option value="300">5 minutes</option>
+      </select>
+    </div>
+
+    <!-- Team List -->
+    <div>
+      <h3 class="text-lg font-semibold mb-2">Teams Joined:</h3>
+      <ul id="team-list" class="list-disc pl-5 text-gray-700"></ul>
+    </div>
+
+    <!-- Start Button -->
+    <div class="text-center">
+      <button id="start-game-btn" class="btn">Start Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- Final Leaderboard -->
+<div id="final-leaderboard" class="hidden flex flex-col items-center justify-center h-screen">
+  <div class="card text-center space-y-4 w-full max-w-xl">
+    <h2 class="text-2xl font-bold text-[#1B9AAA]">Final Results</h2>
+    <ul id="final-leaderboard-list" class="text-lg space-y-2"></ul>
+    <button onclick="showCreateScreen()" class="btn mt-4">Play Again</button>
+  </div>
+</div>
+
 
   <!-- Game Screen -->
   <div id="game-screen" class="hidden flex flex-col items-center justify-center h-screen">
