@@ -1,3 +1,11 @@
+import {
+  collection,
+  doc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
 // Screen toggling
 function showJoinScreen() {
   document.getElementById('initial-screen').classList.add('hidden');
