@@ -24,13 +24,6 @@ function startGame() {
   loadNextQuestion();
 }
 
-const questionText = document.getElementById('question-text');
-const answerContainer = document.getElementById('answer-options');
-let teamScore = 0;
-let correctCount = 0;
-let totalQuestions = 0;
-let correctStreak = 0;
-
 document.getElementById('login-btn').addEventListener('click', () => {
   const gameCode = document.getElementById('game-code').value.trim();
   const teamName = document.getElementById('team-name').value.trim();
@@ -43,6 +36,15 @@ document.getElementById('login-btn').addEventListener('click', () => {
   }
 });
 
+const questionText = document.getElementById('question-text');
+const answerContainer = document.getElementById('answer-options');
+const scoreDisplay = document.getElementById('score-display');
+
+let teamScore = 0;
+let correctCount = 0;
+let totalQuestions = 0;
+let correctStreak = 0;
+
 function loadNextQuestion() {
   const { question, correctAnswer, options } = generateQuestion();
 
@@ -51,4 +53,153 @@ function loadNextQuestion() {
 
   setTimeout(() => {
     options.forEach(ans => {
-     
+      const btn = document.createElement('button');
+      btn.textContent = ans;
+      btn.className = "bg-[#1B9AAA] text-white font-bold py-4 rounded-xl text-xl";
+      btn.onclick = () => {
+        const isCorrect = ans === correctAnswer;
+        handleAnswer(isCorrect);
+      };
+      answerContainer.appendChild(btn);
+    });
+  }, 5000); // 5-second delay
+}
+
+function handleAnswer(isCorrect) {
+  totalQuestions++;
+  if (isCorrect) {
+    correctCount++;
+    correctStreak++;
+    teamScore += 10;
+
+    if (correctStreak >= getRandomStreakTrigger()) {
+      correctStreak = 0;
+      showSecretBox();
+      return;
+    }
+  } else {
+    correctStreak = 0;
+  }
+
+  updateScore();
+  updateLeaderboard();
+  loadNextQuestion();
+}
+
+function updateScore() {
+  scoreDisplay.textContent = `Score: ${teamScore}`;
+}
+
+function getRandomStreakTrigger() {
+  return Math.floor(Math.random() * 4) + 2; // Between 2–5
+}
+
+function showSecretBox() {
+  const boxRewards = ['+10 Points', 'Double Score', 'Halve Score'];
+  const boxEffects = [
+    () => teamScore += 10,
+    () => teamScore *= 2,
+    () => teamScore = Math.floor(teamScore / 2)
+  ];
+
+  const boxContainer = document.createElement('div');
+  boxContainer.className = "flex justify-center gap-6 mt-6";
+
+  boxRewards.forEach((label, index) => {
+    const btn = document.createElement('button');
+    btn.textContent = "?";
+    btn.className = "bg-yellow-300 text-black font-bold py-6 px-8 rounded-full text-3xl";
+    btn.onclick = () => {
+      boxEffects[index]();
+      alert(`You opened: ${label}`);
+      boxContainer.remove();
+      updateScore();
+      updateLeaderboard();
+      loadNextQuestion();
+    };
+    boxContainer.appendChild(btn);
+  });
+
+  answerContainer.innerHTML = '';
+  questionText.textContent = "🎁 Choose a Mystery Box!";
+  answerContainer.appendChild(boxContainer);
+}
+
+function updateLeaderboard() {
+  const leaderboardList = document.getElementById('leaderboard-list');
+  leaderboardList.innerHTML = `
+    <li><strong>Your Team</strong>: ${teamScore} points (${correctCount}/${totalQuestions} correct)</li>
+  `;
+}
+
+function generateQuestion() {
+  const types = [
+    { type: 'whole', factors: [10, 100], id: 'whole10' },
+    { type: 'decimal', factors: [10, 100], id: 'decimal10' },
+    { type: 'whole', factors: [1000], id: 'whole1000' },
+    { type: 'decimal', factors: [1000], id: 'decimal1000' },
+    { type: 'whole', factors: [0.1, 0.01], id: 'wholePoint1' },
+    { type: 'decimal', factors: [0.1, 0.01], id: 'decimalPoint1' }
+  ];
+
+  const selectedTypes = types.filter(t => document.querySelector(`input[value="${t.id}"]`)?.checked);
+  const chosen = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
+  const factor = chosen.factors[Math.floor(Math.random() * chosen.factors.length)];
+  const isMultiply = Math.random() < 0.5;
+  const unknownPosition = Math.floor(Math.random() * 3);
+
+  let base, result, question, correctAnswer;
+
+  if (chosen.type === 'whole') {
+    base = Math.floor(Math.random() * 90 + 10);
+  } else {
+    base = parseFloat((Math.random() * 9 + 0.1).toFixed(2));
+  }
+
+  if (isMultiply) {
+    result = parseFloat((base * factor).toFixed(2));
+    if (unknownPosition === 0) {
+      question = `${base} × ${factor} = ?`;
+      correctAnswer = result.toString();
+    } else if (unknownPosition === 1) {
+      question = `${base} × ? = ${result}`;
+      correctAnswer = factor.toString();
+    } else {
+      question = `? × ${factor} = ${result}`;
+      correctAnswer = base.toString();
+    }
+  } else {
+    result = parseFloat((base / factor).toFixed(2));
+    if (unknownPosition === 0) {
+      question = `${base} ÷ ${factor} = ?`;
+      correctAnswer = result.toString();
+    } else if (unknownPosition === 1) {
+      question = `${base} ÷ ? = ${result}`;
+      correctAnswer = factor.toString();
+    } else {
+      question = `? ÷ ${factor} = ${result}`;
+      correctAnswer = base.toString();
+    }
+  }
+
+  const options = generatePlaceValueOptions(correctAnswer);
+  return { question, correctAnswer, options };
+}
+
+function generatePlaceValueOptions(correct) {
+  const digits = correct.replace('.', '').split('');
+  const variations = new Set();
+  variations.add(correct);
+
+  while (variations.size < 4) {
+    const shuffled = digits.slice().sort(() => Math.random() - 0.5);
+    const decimalIndex = Math.floor(Math.random() * (shuffled.length - 1)) + 1;
+    shuffled.splice(decimalIndex, 0, '.');
+    const variant = shuffled.join('');
+    if (!variations.has(variant)) {
+      variations.add(variant);
+    }
+  }
+
+  return Array.from(variations).sort(() => Math.random() - 0.5);
+}
