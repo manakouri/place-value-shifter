@@ -47,6 +47,8 @@ document.getElementById('login-btn').addEventListener('click', () => {
     document.getElementById('game-screen').classList.remove('hidden');
     document.getElementById('team-display').textContent = `Team: ${teamName}`;
     loadNextQuestion();
+  } else {
+    alert("Please enter both a game code and team name.");
   }
 });
 
