@@ -121,17 +121,15 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 
     // Listen for game start
     onSnapshot(doc(db, "games", gameCode), (docSnap) => {
-      if (docSnap.exists() && docSnap.data().gameStarted) {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.remove('hidden');
-        document.getElementById('team-display').textContent = `Team: ${teamName}`;
-        teamScore = 0;
-        correctCount = 0;
-        totalQuestions = 0;
-        updateScore();
-        loadNextQuestion();
-      }
-    });
+  if (docSnap.exists() && docSnap.data().gameStarted) {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    document.getElementById('team-display').textContent = `Team: ${teamName}`;
+    teamScore = 0;
+    correctCount = 0;
+    totalQuestions = 0;
+    updateScore();
+    loadNextQuestion();
   }
 });
 
@@ -141,18 +139,16 @@ function loadNextQuestion() {
   questionText.textContent = question;
   answerContainer.innerHTML = '';
 
-  setTimeout(() => {
-    options.forEach(ans => {
-      const btn = document.createElement('button');
-      btn.textContent = ans;
-      btn.className = "bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl text-xl hover:bg-cyan-700 transition";
-      btn.onclick = () => {
-        const isCorrect = ans === correctAnswer;
-        handleAnswer(isCorrect);
-      };
-      answerContainer.appendChild(btn);
-    });
-  }, 5000);
+  options.forEach(ans => {
+    const btn = document.createElement('button');
+    btn.textContent = ans;
+    btn.className = "bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl text-xl hover:bg-cyan-700 transition";
+    btn.onclick = () => {
+      const isCorrect = ans === correctAnswer;
+      handleAnswer(isCorrect);
+    };
+    answerContainer.appendChild(btn);
+  });
 }
 
 function handleAnswer(isCorrect) {
