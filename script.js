@@ -124,7 +124,6 @@ document.getElementById('login-btn').addEventListener('click', async () => { // 
         loadNextQuestion();
       }
     }, 1000);
-  }
 });
 
 
