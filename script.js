@@ -63,18 +63,15 @@ let teamScore = 0;
 let correctCount = 0;
 let totalQuestions = 0;
 let teamsJoined = [];
-let gameStarted = false;
 
 // Start game button
 document.getElementById('start-game-btn').addEventListener('click', async () => {
   const gameCode = localStorage.getItem('currentGameCode');
 
-  // 🔁 Update Firestore to signal game start
   await setDoc(doc(db, "games", gameCode), {
     gameStarted: true
   }, { merge: true });
 
-  // 🔁 Start game for host
   document.getElementById('create-game-screen').classList.add('hidden');
   document.getElementById('game-screen').classList.remove('hidden');
   teamScore = 0;
@@ -122,22 +119,9 @@ document.getElementById('login-btn').addEventListener('click', async () => {
       </div>
     `;
 
-    // 🔁 Listen for game start from Firestore
-onSnapshot(doc(db, "games", gameCode), (docSnap) => {
-  if (docSnap.exists() && docSnap.data().gameStarted) {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('game-screen').classList.remove('hidden');
-    document.getElementById('team-display').textContent = `Team: ${teamName}`;
-    teamScore = 0;
-    correctCount = 0;
-    totalQuestions = 0;
-    updateScore();
-    loadNextQuestion();
-  }
-
-    const checkStartInterval = setInterval(() => {
-      if (gameStarted) {
-        clearInterval(checkStartInterval);
+    // Listen for game start
+    onSnapshot(doc(db, "games", gameCode), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().gameStarted) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('game-screen').classList.remove('hidden');
         document.getElementById('team-display').textContent = `Team: ${teamName}`;
@@ -147,7 +131,7 @@ onSnapshot(doc(db, "games", gameCode), (docSnap) => {
         updateScore();
         loadNextQuestion();
       }
-    }, 1000);
+    });
   }
 });
 
@@ -201,7 +185,6 @@ function endGame() {
   `;
 }
 
-// Question generator
 function generateQuestion() {
   const types = [
     { type: 'whole', factors: [10, 100], id: 'whole10' },
@@ -213,6 +196,10 @@ function generateQuestion() {
   ];
 
   const selectedTypes = types.filter(t => document.querySelector(`input[value="${t.id}"]`)?.checked);
+  if (selectedTypes.length === 0) {
+    return { question: "No question types selected.", correctAnswer: "", options: [] };
+  }
+
   const chosen = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
   const factor = chosen.factors[Math.floor(Math.random() * chosen.factors.length)];
   const isMultiply = Math.random() < 0.5;
@@ -254,6 +241,6 @@ function generateQuestion() {
     }
   }
 
-    const options = generatePlaceValueOptions(correctAnswer);
+  const options = generatePlaceValueOptions(correctAnswer);
   return { question, correctAnswer, options };
 }
