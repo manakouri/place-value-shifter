@@ -48,22 +48,42 @@
     }
   </style>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"></script>
-  <script>
-    const firebaseConfig = {
+<!-- Firebase SDK -->
+<!-- Keep these script tags as they are, but note that for modular imports, -->
+<!-- typically you'd use npm/yarn and import directly into your JS/TS files. -->
+<!-- For a simple script in HTML, this is okay for direct access. -->
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js" type="module"></script>
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js" type="module"></script>
+
+<script type="module">
+  // 1. Import the specific modular functions you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+  const firebaseConfig = {
     apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
     authDomain: "place-value-shifter.firebaseapp.com",
     projectId: "place-value-shifter",
     storageBucket: "place-value-shifter.firebasestorage.app",
     messagingSenderId: "388817467603",
     appId: "1:388817467603:web:26f323802399f959dd7c26",
-    };
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
+  // 2. Initialize Firebase using the modular `initializeApp` function
+  const app = initializeApp(firebaseConfig);
+
+  // 3. Get the Firestore instance using the modular `getFirestore` function
+  const db = getFirestore(app);
+
+  // Now 'db' is your Firestore database instance, ready for use!
+  console.log("Firebase initialized and Firestore instance obtained.");
+  // You can now use `db` like:
+  // import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+  // async function saveData() {
+  //   await addDoc(collection(db, "myCollection"), { name: "test" });
+  // }
+</script>
+
 </head>
 <body>
 
@@ -86,7 +106,6 @@
     </div>
   </div>
 
-  <!-- Create Game Screen -->
   <!-- Create Game Screen -->
 <div id="create-game-screen" class="hidden flex flex-col items-center justify-center h-screen">
   <div class="card text-left space-y-6 w-full max-w-xl">
