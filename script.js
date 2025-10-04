@@ -100,27 +100,27 @@ document.getElementById('login-btn').addEventListener('click', async () => {
         joinedAt: serverTimestamp()
       });
 
-      const teamList = document.getElementById('team-list');
-      if (teamList) {
-        const li = document.createElement('li');
-        li.textContent = teamName;
-        teamList.appendChild(li);
-      }
-    } catch (error) {
-      console.error("Error writing team to Firestore:", error);
-    }
+    // ✅ Update team list UI (optional for host)
+const teamList = document.getElementById('team-list');
+if (teamList) {
+  const li = document.createElement('li');
+  li.textContent = teamName;
+  teamList.appendChild(li);
+}
 
-    // Show waiting screen
-    document.getElementById('login-screen').innerHTML = `
-      <div class="max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center">
-        <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
-        <p class="text-xl mt-4">✅ Joined game <strong>${gameCode}</strong></p>
-        <p class="text-lg text-gray-700 mt-2">⏳ Waiting for the game to start...</p>
-      </div>
-    `;
+// ✅ Show waiting screen safely
+const waitingContainer = document.createElement('div');
+waitingContainer.className = "max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center";
+waitingContainer.innerHTML = `
+  <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
+  <p class="text-xl mt-4">✅ Joined game <strong>${gameCode}</strong></p>
+  <p class="text-lg text-gray-700 mt-2">⏳ Waiting for the game to start...</p>
+`;
+document.getElementById('login-screen').innerHTML = '';
+document.getElementById('login-screen').appendChild(waitingContainer);
 
-    // Listen for game start
-    onSnapshot(doc(db, "games", gameCode), (docSnap) => {
+// ✅ Listen for game start from Firestore
+onSnapshot(doc(db, "games", gameCode), (docSnap) => {
   if (docSnap.exists() && docSnap.data().gameStarted) {
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
@@ -132,6 +132,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     loadNextQuestion();
   }
 });
+
 
 // Question logic
 function loadNextQuestion() {
