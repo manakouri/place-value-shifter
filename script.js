@@ -259,17 +259,24 @@ function generateQuestion() {
   const powersOfTen = [10, 100, 1000, 0.1, 0.01];
 
   // Define all possible types
-  const allTypes = [
-    { id: 'whole10', digits: 2, factor: 10 },
-    { id: 'whole100', digits: 2, factor: 100 },
-    { id: 'whole1000', digits: 3, factor: 1000 },
-    { id: 'decimal10', digits: 2, factor: 10 },
-    { id: 'decimal100', digits: 2, factor: 100 },
-    { id: 'decimal1000', digits: 3, factor: 1000 },
-    { id: 'wholePoint1', digits: 2, factor: 0.1 },
-    { id: 'decimalPoint1', digits: 2, factor: 0.1 },
-    { id: 'decimalPoint01', digits: 2, factor: 0.01 }
-  ];
+ const allTypes = [
+  // Whole numbers (2 digits)
+  { id: 'whole_x10', digits: 2, decimals: 0, operation: '×', factor: 10 },
+  { id: 'whole_x100', digits: 2, decimals: 0, operation: '×', factor: 100 },
+  { id: 'whole_÷10', digits: 2, decimals: 0, operation: '÷', factor: 10 },
+  { id: 'whole_÷100', digits: 2, decimals: 0, operation: '÷', factor: 100 },
+
+  // Decimals to 1dp
+  { id: 'decimal1_x10', digits: 2, decimals: 1, operation: '×', factor: 10 },
+  { id: 'decimal1_x100', digits: 2, decimals: 1, operation: '×', factor: 100 },
+  { id: 'decimal1_÷10', digits: 2, decimals: 1, operation: '÷', factor: 10 },
+  { id: 'decimal1_÷100', digits: 2, decimals: 1, operation: '÷', factor: 100 },
+
+  // Decimals to 2dp
+  { id: 'decimal2_x10', digits: 2, decimals: 2, operation: '×', factor: 10 },
+  { id: 'decimal2_x100', digits: 2, decimals: 2, operation: '×', factor: 100 },
+  { id: 'decimal2_÷10', digits: 2, decimals: 2, operation: '÷', factor: 10 }
+];
 
   // Filter based on allowedTypes from Firestore
   const filteredTypes = allTypes.filter(t => allowedTypes.includes(t.id));
@@ -277,25 +284,21 @@ function generateQuestion() {
     return { question: "No question types selected.", correctAnswer: "", options: [] };
   }
 
-  // Pick a type and operation
   const chosen = filteredTypes[Math.floor(Math.random() * filteredTypes.length)];
-  const digitLength = chosen.digits;
-  const factor = chosen.factor;
-  const isMultiply = Math.random() < 0.5;
+  const { digits, decimals, operation, factor } = chosen;
   const unknownPosition = Math.floor(Math.random() * 3); // 0 = a, 1 = b, 2 = c
 
   // Generate digit string
-  const digits = Array.from({ length: digitLength }, () => Math.floor(Math.random() * 9) + 1).join('');
+  const digitStr = Array.from({ length: digits }, () => Math.floor(Math.random() * 9) + 1).join('');
 
-  // Create base number with decimal point
-  const decimalPlaces = Math.floor(Math.random() * (digitLength + 1));
-  let baseStr = digits;
-  if (decimalPlaces > 0) {
-    baseStr = baseStr.padStart(decimalPlaces + 1, '0');
-    baseStr = baseStr.slice(0, baseStr.length - decimalPlaces) + '.' + baseStr.slice(baseStr.length - decimalPlaces);
+  // Format base number with decimal places
+  let baseStr = digitStr;
+  if (decimals > 0) {
+    baseStr = baseStr.padStart(decimals + 1, '0');
+    baseStr = baseStr.slice(0, baseStr.length - decimals) + '.' + baseStr.slice(baseStr.length - decimals);
   }
   const base = parseFloat(baseStr);
-  const result = isMultiply ? base * factor : base / factor;
+  const result = operation === '×' ? base * factor : base / factor;
 
   const formattedBase = formatNumber(base);
   const formattedFactor = formatNumber(factor);
@@ -306,22 +309,21 @@ function generateQuestion() {
   let options = [];
 
   if (unknownPosition === 0) {
-    question = `? ${isMultiply ? '×' : '÷'} ${formattedFactor} = ${formattedResult}`;
+    question = `? ${operation} ${formattedFactor} = ${formattedResult}`;
     correctAnswer = formattedBase;
-    options = generatePlaceValueOptions(correctAnswer, digits);
+    options = generatePlaceValueOptions(correctAnswer, digitStr);
   } else if (unknownPosition === 1) {
-    question = `${formattedBase} ${isMultiply ? '×' : '÷'} ? = ${formattedResult}`;
+    question = `${formattedBase} ${operation} ? = ${formattedResult}`;
     correctAnswer = formattedFactor;
     options = generatePowerOfTenOptions(correctAnswer);
   } else {
-    question = `${formattedBase} ${isMultiply ? '×' : '÷'} ${formattedFactor} = ?`;
+    question = `${formattedBase} ${operation} ${formattedFactor} = ?`;
     correctAnswer = formattedResult;
-    options = generatePlaceValueOptions(correctAnswer, digits);
+    options = generatePlaceValueOptions(correctAnswer, digitStr);
   }
 
   return { question, correctAnswer, options };
 }
-
 
 function generatePowerOfTenOptions(correct) {
   const allPowers = [10, 100, 1000, 0.1, 0.01];
