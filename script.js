@@ -1,3 +1,4 @@
+// Screen toggling
 function showJoinScreen() {
   document.getElementById('initial-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
@@ -13,14 +14,12 @@ function showCreateScreen() {
   generateGameCode();
 }
 
-window.showJoinScreen = showJoinScreen;
-window.showCreateScreen = showCreateScreen;
-
 function generateGameCode() {
   const code = Math.random().toString(36).substring(2, 8).toUpperCase();
   document.getElementById('generated-game-code').textContent = code;
 }
 
+// Make screen functions globally accessible
 window.showJoinScreen = showJoinScreen;
 window.showCreateScreen = showCreateScreen;
 
@@ -102,3 +101,113 @@ function loadNextQuestion() {
   }, 5000);
 }
 
+function handleAnswer(isCorrect) {
+  totalQuestions++;
+  if (isCorrect) {
+    correctCount++;
+    teamScore += 10;
+  }
+
+  updateScore();
+
+  if (totalQuestions >= 10) {
+    endGame();
+  } else {
+    loadNextQuestion();
+  }
+}
+
+function updateScore() {
+  scoreDisplay.textContent = `Score: ${teamScore}`;
+}
+
+function endGame() {
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('create-game-screen').classList.remove('hidden');
+  finalLeaderboard.classList.remove('hidden');
+  finalLeaderboardList.innerHTML = `
+    <li><strong>Score:</strong> ${teamScore}</li>
+    <li><strong>Correct Answers:</strong> ${correctCount}</li>
+    <li><strong>Total Questions:</strong> ${totalQuestions}</li>
+    <li><strong>Accuracy:</strong> ${Math.round((correctCount / totalQuestions) * 100)}%</li>
+  `;
+}
+
+function generateQuestion() {
+  const types = [
+    { type: 'whole', factors: [10, 100], id: 'whole10' },
+    { type: 'decimal', factors: [10, 100], id: 'decimal10' },
+    { type: 'whole', factors: [1000], id: 'whole1000' },
+    { type: 'decimal', factors: [1000], id: 'decimal1000' },
+    { type: 'whole', factors: [0.1, 0.01], id: 'wholePoint1' },
+    { type: 'decimal', factors: [0.1, 0.01], id: 'decimalPoint1' }
+  ];
+
+  const selectedTypes = types.filter(t => document.querySelector(`input[value="${t.id}"]`)?.checked);
+  const chosen = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
+  const factor = chosen.factors[Math.floor(Math.random() * chosen.factors.length)];
+  const isMultiply = Math.random() < 0.5;
+  const unknownPosition = Math.floor(Math.random() * 3);
+
+  let base, result, question, correctAnswer;
+
+  if (chosen.type === 'whole') {
+    base = Math.floor(Math.random() * 90 + 10); // 10–99
+  } else {
+    const whole = Math.floor(Math.random() * 9 + 1); // 1–9
+    const decimal = Math.floor(Math.random() * 9 + 1); // 1–9
+    base = parseFloat(`${whole}.${decimal}`);
+  }
+
+  if (isMultiply) {
+    result = base * factor;
+    if (unknownPosition === 0) {
+      question = `${base} × ${factor} = ?`;
+      correctAnswer = result.toString();
+    } else if (unknownPosition === 1) {
+      question = `${base} × ? = ${result}`;
+      correctAnswer = factor.toString();
+    } else {
+      question = `? × ${factor} = ${result}`;
+      correctAnswer = base.toString();
+    }
+  } else {
+    result = base / factor;
+    if (unknownPosition === 0) {
+      question = `${base} ÷ ${factor} = ?`;
+      correctAnswer = result.toString();
+    } else if (unknownPosition === 1) {
+      question = `${base} ÷ ? = ${result}`;
+      correctAnswer = factor.toString();
+    } else {
+      question = `? ÷ ${factor} = ${result}`;
+      correctAnswer = base.toString();
+    }
+  }
+
+  const options = generatePlaceValueOptions(correctAnswer);
+  return { question, correctAnswer, options };
+}
+
+function generatePlaceValueOptions(correct) {
+  const digits = correct.replace('.', '').split('');
+  const variations = new Set();
+  variations.add(correct);
+
+  while (variations.size < 4) {
+    const shuffled = digits.slice().sort(() => Math.random() - 0.5);
+    const decimalIndex = Math.floor(Math.random() * (shuffled.length - 1)) + 1;
+    shuffled.splice(decimalIndex, 0, '.');
+    let variant = shuffled.join('');
+
+    if (variant.startsWith('00')) {
+      variant = variant.replace(/^0+/, '0');
+    }
+
+    if (!variations.has(variant)) {
+      variations.add(variant);
+    }
+  }
+
+  return Array.from(variations).sort(() => Math.random() - 0.5);
+}
