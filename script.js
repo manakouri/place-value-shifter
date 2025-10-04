@@ -51,10 +51,18 @@ document.getElementById('login-btn').addEventListener('click', () => {
 
   if (gameCode && teamName) {
     if (!teamsJoined.includes(teamName)) {
-  teamsJoined.push(teamName);
-  localStorage.setItem('teamsJoined', JSON.stringify(teamsJoined));
-  updateTeamList();
-}
+      teamsJoined.push(teamName);
+      const teamList = document.getElementById('team-list');
+      const li = document.createElement('li');
+      li.textContent = teamName;
+      teamList.appendChild(li);
+
+      // ✅ INSERT FIREBASE CODE HERE
+      db.collection("games").doc(gameCode).collection("teams").doc(teamName).set({
+        name: teamName,
+        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
 
     document.getElementById('login-screen').innerHTML = `
       <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
@@ -78,16 +86,6 @@ document.getElementById('login-btn').addEventListener('click', () => {
   }
 });
 
-function updateTeamList() {
-  const teamList = document.getElementById('team-list');
-  teamList.innerHTML = '';
-  const storedTeams = JSON.parse(localStorage.getItem('teamsJoined')) || [];
-  storedTeams.forEach(name => {
-    const li = document.createElement('li');
-    li.textContent = name;
-    teamList.appendChild(li);
-  });
-}
 
 function loadNextQuestion() {
   const { question, correctAnswer, options } = generateQuestion();
