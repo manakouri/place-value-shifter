@@ -1,3 +1,5 @@
+let allowedTypes = []; // ✅ Global scope
+
 import {
   collection,
   doc,
@@ -8,8 +10,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 const db = window.db;
-
-let allowedTypes = []; // ✅ Global scope
 
 // Screen toggling
 function showJoinScreen() {
@@ -118,9 +118,11 @@ document.getElementById('login-btn').addEventListener('click', async () => {
       document.getElementById('login-screen').appendChild(waitingContainer);
 
       // ✅ Listen for game start and load question types
+      
       onSnapshot(gameDocRef, (docSnap) => {
         if (docSnap.exists() && docSnap.data().gameStarted) {
-          allowedTypes = docSnap.data().questionTypes || [];
+         allowedTypes = docSnap.data().questionTypes || [];
+          loadNextQuestion(); // ✅ Only after allowedTypes is set
 
           const endTime = docSnap.data().gameEndsAt;
           const remaining = Math.floor((endTime - Date.now()) / 1000);
