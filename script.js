@@ -9,6 +9,8 @@ import {
 
 const db = window.db;
 
+let allowedTypes = []; // ✅ Global scope
+
 // Screen toggling
 function showJoinScreen() {
   document.getElementById('initial-screen').classList.add('hidden');
@@ -87,6 +89,7 @@ document.getElementById('start-game-btn').addEventListener('click', async () => 
 
 
 // Joiner joins game
+
 document.getElementById('login-btn').addEventListener('click', async () => {
   const gameCode = document.getElementById('game-code').value.trim();
   const teamName = document.getElementById('team-name').value.trim();
@@ -114,9 +117,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
       document.getElementById('login-screen').innerHTML = '';
       document.getElementById('login-screen').appendChild(waitingContainer);
 
-      // ✅ Place this block here
-      let allowedTypes = [];
-
+      // ✅ Listen for game start and load question types
       onSnapshot(gameDocRef, (docSnap) => {
         if (docSnap.exists() && docSnap.data().gameStarted) {
           allowedTypes = docSnap.data().questionTypes || [];
@@ -131,6 +132,8 @@ document.getElementById('login-btn').addEventListener('click', async () => {
           correctCount = 0;
           totalQuestions = 0;
           updateScore();
+
+          // ✅ Now safe to start game
           loadNextQuestion();
           startCountdown(remaining);
         }
@@ -141,6 +144,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     }
   }
 });
+
 
 // Countdown timer
 function startCountdown(seconds) {
