@@ -1,4 +1,3 @@
-// Screen toggling
 function showJoinScreen() {
   document.getElementById('initial-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
@@ -19,7 +18,6 @@ function generateGameCode() {
   document.getElementById('generated-game-code').textContent = code;
 }
 
-// Make screen functions globally accessible
 window.showJoinScreen = showJoinScreen;
 window.showCreateScreen = showCreateScreen;
 
@@ -152,10 +150,10 @@ function generateQuestion() {
   let base, result, question, correctAnswer;
 
   if (chosen.type === 'whole') {
-    base = Math.floor(Math.random() * 90 + 10); // 10–99
+    base = Math.floor(Math.random() * 90 + 10);
   } else {
-    const whole = Math.floor(Math.random() * 9 + 1); // 1–9
-    const decimal = Math.floor(Math.random() * 9 + 1); // 1–9
+    const whole = Math.floor(Math.random() * 9 + 1);
+    const decimal = Math.floor(Math.random() * 9 + 1);
     base = parseFloat(`${whole}.${decimal}`);
   }
 
