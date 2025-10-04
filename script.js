@@ -76,14 +76,9 @@ document.getElementById('start-game-btn').addEventListener('click', async () => 
     gameEndsAt: gameEndsAt
   }, { merge: true });
 
-  document.getElementById('create-game-screen').classList.add('hidden');
-  document.getElementById('game-screen').classList.remove('hidden');
-  teamScore = 0;
-  correctCount = 0;
-  totalQuestions = 0;
-  updateScore();
-  loadNextQuestion();
+  // ✅ Host stays on create screen and sees countdown + live leaderboard
   startCountdown(gameDuration);
+  activateLiveLeaderboard(gameCode);
 });
 
 // Joiner joins game
@@ -146,6 +141,22 @@ function startCountdown(seconds) {
       endGame();
     }
   }, 1000);
+}
+
+function activateLiveLeaderboard(gameCode) {
+  const teamsRef = collection(db, "games", gameCode, "teams");
+  onSnapshot(teamsRef, (snapshot) => {
+    const liveList = document.getElementById('live-leaderboard');
+    if (!liveList) return;
+
+    liveList.innerHTML = '';
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>${data.name}</strong>: ${data.score || 0} pts, ${data.accuracy || 0}% (${data.correct || 0}/${data.total || 0})`;
+      liveList.appendChild(li);
+    });
+  });
 }
 
 // Question logic
