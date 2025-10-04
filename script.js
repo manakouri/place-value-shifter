@@ -252,40 +252,71 @@ async function endGame() {
 }
 
 function generateQuestion() {
-  const types = [
-    { type: 'whole', factors: [10, 100], id: 'whole10', places: [0, 0, 0] },
-    { type: 'decimal', factors: [10, 100], id: 'decimal10', places: [1, 2, 1] },
-    { type: 'whole', factors: [1000], id: 'whole1000', places: [0, 0, 0] },
-    { type: 'decimal', factors: [1000], id: 'decimal1000', places: [2, 3, 2] },
-    { type: 'whole', factors: [0.1, 0.01], id: 'wholePoint1', places: [1, 2, 1] },
-    { type: 'decimal', factors: [0.1, 0.01], id: 'decimalPoint1', places: [2, 3, 2] }
-  ];
+  const powersOfTen = [10, 100, 1000, 0.1, 0.01];
+  const unknownPosition = Math.floor(Math.random() * 3); // 0 = a, 1 = b, 2 = c
+  const isMultiply = Math.random() < 0.5;
 
-  const selectedTypes = types.filter(t => allowedTypes.includes(t.id));
-  if (selectedTypes.length === 0) {
-    return { question: "No question types selected.", correctAnswer: "", options: [] };
+  // Generate digit string (e.g. "84", "506")
+  const digitLength = Math.random() < 0.5 ? 2 : 3;
+  const digits = Array.from({ length: digitLength }, () => Math.floor(Math.random() * 9) + 1).join('');
+
+  // Choose a power of ten
+  const factor = powersOfTen[Math.floor(Math.random() * powersOfTen.length)];
+
+  // Create base number with decimal point
+  const decimalPlaces = Math.floor(Math.random() * (digitLength + 1));
+  let baseStr = digits;
+  if (decimalPlaces > 0) {
+    baseStr = baseStr.padStart(decimalPlaces + 1, '0');
+    baseStr = baseStr.slice(0, baseStr.length - decimalPlaces) + '.' + baseStr.slice(baseStr.length - decimalPlaces);
+  }
+  const base = parseFloat(baseStr);
+
+  // Compute result
+  const result = isMultiply ? base * factor : base / factor;
+
+  // Format values
+  const formattedBase = formatNumber(base);
+  const formattedFactor = formatNumber(factor);
+  const formattedResult = formatNumber(result);
+
+  let question = '';
+  let correctAnswer = '';
+  let options = [];
+
+  if (unknownPosition === 0) {
+    question = `? ${isMultiply ? '×' : '÷'} ${formattedFactor} = ${formattedResult}`;
+    correctAnswer = formattedBase;
+    options = generatePlaceValueOptions(correctAnswer, digits);
+  } else if (unknownPosition === 1) {
+    question = `${formattedBase} ${isMultiply ? '×' : '÷'} ? = ${formattedResult}`;
+    correctAnswer = formattedFactor;
+    options = generatePowerOfTenOptions(correctAnswer);
+  } else {
+    question = `${formattedBase} ${isMultiply ? '×' : '÷'} ${formattedFactor} = ?`;
+    correctAnswer = formattedResult;
+    options = generatePlaceValueOptions(correctAnswer, digits);
   }
 
-  const chosen = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
-  const digit1 = Math.floor(Math.random() * 9) + 1;
-  const digit2 = Math.floor(Math.random() * 9) + 1;
-  const digits = `${digit1}${digit2}`;
+  return { question, correctAnswer, options };
+}
 
-  const places = chosen.places.slice();
-  while (places.length < 3) places.push(places[0]);
-  const shuffledPlaces = places.sort(() => Math.random() - 0.5);
-  const [placeA, placeB, placeC] = shuffledPlaces;
+function formatNumber(num) {
+  return parseFloat(num).toFixed(6).replace(/\.?0+$/, '');
+}
 
-  function makeNumber(digs, decimalPlaces) {
-    let n = digs;
-    while (n.length < decimalPlaces + 1) n = "0" + n;
-    const insertAt = n.length - decimalPlaces;
-    return insertAt === n.length ? n : n.slice(0, insertAt) + "." + n.slice(insertAt);
+function generatePowerOfTenOptions(correct) {
+  const allPowers = [10, 100, 1000, 0.1, 0.01];
+  const variations = new Set();
+  variations.add(correct);
+
+  while (variations.size < 4) {
+    const distractor = allPowers[Math.floor(Math.random() * allPowers.length)];
+    variations.add(formatNumber(distractor));
   }
 
-  function formatNumber(str) {
-    return parseFloat(str).toFixed(3).replace(/\.?0+$/, "");
-  }
+  return Array.from(variations).sort(() => Math.random() - 0.5);
+}
 
   const unknownPosition = Math.floor(Math.random() * 3);
 
