@@ -8,61 +8,97 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Custom Styling -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      touch-action: manipulation;
+      background-color: #f3f4f6;
+      color: #1f2937;
+    }
+    .card {
+      background-color: white;
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    .btn {
+      background-color: #0891b2;
+      color: white;
+      font-weight: 700;
+      padding: 1rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1.125rem;
+      transition: all 0.2s ease-in-out;
+      display: inline-block;
+      text-align: center;
+    }
+    .btn:hover {
+      background-color: #0e7490;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                  0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    }
+    .pattern-highlight {
+      color: #7209B7;
+      font-weight: 700;
+    }
+  </style>
+
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"></script>
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
-      authDomain: "place-value-shifter.firebaseapp.com",
-      projectId: "place-value-shifter",
-      storageBucket: "place-value-shifter.appspot.com",
-      messagingSenderId: "388817467603",
-      appId: "1:388817467603:web:26f323802399f959dd7c26"
-      measurementId: "G-TMZC74RWR2"
+    apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
+    authDomain: "place-value-shifter.firebaseapp.com",
+    projectId: "place-value-shifter",
+    storageBucket: "place-value-shifter.firebasestorage.app",
+    messagingSenderId: "388817467603",
+    appId: "1:388817467603:web:26f323802399f959dd7c26",
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
   </script>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-
-  <div id="game-container" class="w-full max-w-4xl bg-white rounded-xl shadow-lg p-6 text-center space-y-6">
-
-    <h1 class="text-5xl font-bold text-[#1B9AAA]">Place Value Shifter</h1>
+<body>
 
   <!-- Initial Screen -->
-  <div id="initial-screen">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <button onclick="showJoinScreen()" class="btn p-6 font-bold rounded-xl text-2xl">Join a Game</button>
-        <button onclick="showCreateScreen()" class="btn p-6 font-bold rounded-xl text-2xl">Create a New Game</button>
-      </div>
+  <div id="initial-screen" class="flex flex-col items-center justify-center h-screen space-y-6">
+    <div class="card text-center">
+      <h1 class="text-4xl font-bold text-[#1B9AAA]">Place Value Shifter</h1>
+      <button onclick="showJoinScreen()" class="btn mt-4">Join a Game</button>
+      <button onclick="showCreateScreen()" class="btn mt-2">Create a New Game</button>
     </div>
+  </div>
 
   <!-- Join Screen -->
   <div id="login-screen" class="hidden flex flex-col items-center justify-center h-screen">
-    <div class="max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center">
+    <div class="card text-center space-y-4">
       <h2 class="text-2xl font-bold text-[#1B9AAA]">Join Game</h2>
       <input id="game-code" type="text" placeholder="Enter Game Code" class="w-full border border-gray-300 rounded px-4 py-2 text-lg" />
       <input id="team-name" type="text" placeholder="Enter Team Name" class="w-full border border-gray-300 rounded px-4 py-2 text-lg" />
-      <button id="login-btn" class="bg-cyan-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-cyan-700 transition">Join</button>
+      <button id="login-btn" class="btn">Join</button>
     </div>
   </div>
 
   <!-- Create Game Screen -->
   <div id="create-game-screen" class="hidden flex flex-col items-center justify-center h-screen">
-    <div class="max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center">
+    <div class="card text-center space-y-4">
       <h2 class="text-2xl font-bold text-[#1B9AAA]">Create Game</h2>
       <p class="text-lg">Game Code: <span id="generated-game-code" class="font-mono text-xl"></span></p>
       <ul id="team-list" class="list-disc pl-5 text-left text-gray-700"></ul>
-      <button id="start-game-btn" class="bg-cyan-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-cyan-700 transition">Start Game</button>
+      <button id="start-game-btn" class="btn">Start Game</button>
     </div>
   </div>
 
   <!-- Game Screen -->
   <div id="game-screen" class="hidden flex flex-col items-center justify-center h-screen">
-    <div class="max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center">
+    <div class="card text-center space-y-4">
       <h2 id="team-display" class="text-2xl font-bold text-[#1B9AAA]">Team: </h2>
       <p id="score-display" class="text-xl font-semibold">Score: 0</p>
       <p id="question-text" class="text-lg mt-4"></p>
@@ -72,7 +108,7 @@
 
   <!-- Final Leaderboard -->
   <div id="final-leaderboard" class="hidden flex flex-col items-center justify-center h-screen">
-    <div class="max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center">
+    <div class="card text-center space-y-4">
       <h2 class="text-2xl font-bold text-[#1B9AAA]">Final Results</h2>
       <ul id="final-leaderboard-list" class="text-lg space-y-2"></ul>
     </div>
