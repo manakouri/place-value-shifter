@@ -305,6 +305,7 @@ function formatNumber(num) {
   return parseFloat(num).toFixed(6).replace(/\.?0+$/, '');
 }
 
+
 function generatePowerOfTenOptions(correct) {
   const allPowers = [10, 100, 1000, 0.1, 0.01];
   const variations = new Set();
