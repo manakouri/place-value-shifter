@@ -18,17 +18,8 @@ function generateGameCode() {
   document.getElementById('generated-game-code').textContent = code;
 }
 
-function showInitialScreen() {
-  document.getElementById('initial-screen').classList.remove('hidden');
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('create-game-screen').classList.add('hidden');
-  document.getElementById('game-screen').classList.add('hidden');
-}
-
-// Attach to window for global access
 window.showJoinScreen = showJoinScreen;
 window.showCreateScreen = showCreateScreen;
-window.showInitialScreen = showInitialScreen;
 
 const questionText = document.getElementById('question-text');
 const answerContainer = document.getElementById('answer-options');
