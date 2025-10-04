@@ -14,17 +14,21 @@ function showCreateScreen() {
 
   const gameCode = localStorage.getItem('currentGameCode');
 
-  db.collection("games").doc(gameCode).collection("teams")
-    .onSnapshot(snapshot => {
-      const teamList = document.getElementById('team-list');
-      teamList.innerHTML = '';
-      console.log('Snapshot triggered')
-      snapshot.forEach(doc => {
-        const li = document.createElement('li');
-        li.textContent = doc.data().name;
-        teamList.appendChild(li);
-      });
+  // Modular Firestore API
+  const gamesCollectionRef = collection(db, "games");
+  const gameDocRef = doc(gamesCollectionRef, gameCode);
+  const teamsCollectionRef = collection(gameDocRef, "teams");
+
+  onSnapshot(teamsCollectionRef, (snapshot) => {
+    const teamList = document.getElementById('team-list');
+    teamList.innerHTML = '';
+    console.log('Snapshot triggered')
+    snapshot.forEach(doc => {
+      const li = document.createElement('li');
+      li.textContent = doc.data().name;
+      teamList.appendChild(li);
     });
+  });
 }
 
 function generateGameCode() {
