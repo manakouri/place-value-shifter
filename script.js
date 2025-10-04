@@ -18,6 +18,7 @@ function showCreateScreen() {
     .onSnapshot(snapshot => {
       const teamList = document.getElementById('team-list');
       teamList.innerHTML = '';
+      console.log('Snapshot triggered')
       snapshot.forEach(doc => {
         const li = document.createElement('li');
         li.textContent = doc.data().name;
