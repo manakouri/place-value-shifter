@@ -241,3 +241,25 @@ function generateQuestion() {
   const options = generatePlaceValueOptions(correctAnswer);
   return { question, correctAnswer, options };
 }
+function generatePlaceValueOptions(correct) {
+  const digits = correct.replace('.', '').split('');
+  const variations = new Set();
+  variations.add(correct);
+
+  while (variations.size < 4) {
+    const shuffled = digits.slice().sort(() => Math.random() - 0.5);
+    const decimalIndex = Math.floor(Math.random() * (shuffled.length - 1)) + 1;
+    shuffled.splice(decimalIndex, 0, '.');
+    let variant = shuffled.join('');
+
+    if (variant.startsWith('00')) {
+      variant = variant.replace(/^0+/, '0');
+    }
+
+    if (!variations.has(variant)) {
+      variations.add(variant);
+    }
+  }
+
+  return Array.from(variations).sort(() => Math.random() - 0.5);
+} // closes generatePlaceValueOptions()
