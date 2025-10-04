@@ -35,10 +35,10 @@
     </div>
 
     <!-- Create Game Screen -->
-    <div id="create-game-screen" class="hidden text-left space-y-4 text-lg">
-      <p class="text-xl font-bold">Game Code: <span id="generated-game-code" class="text-[#1B9AAA]">ABC123</span></p>
+    <div id="create-game-screen" class="hidden text-left space-y-6 text-lg">
+      <p class="text-2xl font-bold">Game Code: <span id="generated-game-code" class="text-[#1B9AAA]">ABC123</span></p>
 
-      <label class="block font-semibold">Game Duration (minutes):</label>
+      <label class="block font-semibold text-xl">Game Duration (minutes):</label>
       <select id="game-duration" class="w-full p-3 border rounded-lg text-lg">
         <option value="3">3</option>
         <option value="5">5</option>
@@ -46,8 +46,8 @@
         <option value="15">15</option>
       </select>
 
-      <label class="block font-semibold">Question Types:</label>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <label class="block font-semibold text-xl">Question Types:</label>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <label><input type="checkbox" value="whole10" checked /> Whole ×/÷ 10, 100</label>
         <label><input type="checkbox" value="decimal10" checked /> Decimal ×/÷ 10, 100</label>
         <label><input type="checkbox" value="whole1000" /> Whole ×/÷ 1000</label>
@@ -99,7 +99,7 @@
 
       <!-- Question Area -->
       <div id="question-area" class="box p-6 rounded-lg space-y-6">
-        <div id="question-text" class="text-3xl font-bold">Loading question...</div>
+        <div id="question-text" class="text-4xl font-bold">Loading question...</div>
         <div id="answer-options" class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[150px]"></div>
       </div>
 
@@ -112,6 +112,6 @@
 
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
