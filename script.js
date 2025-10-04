@@ -11,6 +11,7 @@ function showCreateScreen() {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('game-screen').classList.add('hidden');
   generateGameCode();
+  updateTeamList();
 }
 
 function generateGameCode() {
@@ -50,12 +51,10 @@ document.getElementById('login-btn').addEventListener('click', () => {
 
   if (gameCode && teamName) {
     if (!teamsJoined.includes(teamName)) {
-      teamsJoined.push(teamName);
-      const teamList = document.getElementById('team-list');
-      const li = document.createElement('li');
-      li.textContent = teamName;
-      teamList.appendChild(li);
-    }
+  teamsJoined.push(teamName);
+  localStorage.setItem('teamsJoined', JSON.stringify(teamsJoined));
+  updateTeamList();
+}
 
     document.getElementById('login-screen').innerHTML = `
       <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
@@ -78,6 +77,17 @@ document.getElementById('login-btn').addEventListener('click', () => {
     }, 1000);
   }
 });
+
+function updateTeamList() {
+  const teamList = document.getElementById('team-list');
+  teamList.innerHTML = '';
+  const storedTeams = JSON.parse(localStorage.getItem('teamsJoined')) || [];
+  storedTeams.forEach(name => {
+    const li = document.createElement('li');
+    li.textContent = name;
+    teamList.appendChild(li);
+  });
+}
 
 function loadNextQuestion() {
   const { question, correctAnswer, options } = generateQuestion();
