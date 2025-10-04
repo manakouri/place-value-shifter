@@ -102,7 +102,7 @@ document.getElementById('login-btn').addEventListener('click', async () => { // 
         }
       }
     }
-  });
+  }
 
 
     // ✅ Show waiting screen
@@ -128,7 +128,8 @@ document.getElementById('login-btn').addEventListener('click', async () => { // 
         loadNextQuestion();
       }
     }, 1000);
-});
+  }
+}); // <-- closes the event listener function
 
 
 function loadNextQuestion() {
