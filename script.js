@@ -65,23 +65,32 @@ document.getElementById('login-btn').addEventListener('click', () => {
   if (gameCode && teamName) {
     if (!teamsJoined.includes(teamName)) {
       teamsJoined.push(teamName);
-      const teamList = document.getElementById('team-list');
-      const li = document.createElement('li');
-      li.textContent = teamName;
-      teamList.appendChild(li);
 
+      // ✅ Save to Firestore
       db.collection("games").doc(gameCode).collection("teams").doc(teamName).set({
         name: teamName,
         joinedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
+
+      // ✅ Update local team list UI (optional for joiner screen)
+      const teamList = document.getElementById('team-list');
+      if (teamList) {
+        const li = document.createElement('li');
+        li.textContent = teamName;
+        teamList.appendChild(li);
+      }
     }
 
+    // ✅ Show waiting screen
     document.getElementById('login-screen').innerHTML = `
-      <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
-      <p class="text-xl mt-4">✅ Joined game <strong>${gameCode}</strong></p>
-      <p class="text-lg text-gray-700 mt-2">⏳ Waiting for the game to start...</p>
+      <div class="max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center">
+        <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
+        <p class="text-xl mt-4">✅ Joined game <strong>${gameCode}</strong></p>
+        <p class="text-lg text-gray-700 mt-2">⏳ Waiting for the game to start...</p>
+      </div>
     `;
 
+    // ✅ Poll for game start
     const checkStartInterval = setInterval(() => {
       if (gameStarted) {
         clearInterval(checkStartInterval);
@@ -97,6 +106,7 @@ document.getElementById('login-btn').addEventListener('click', () => {
     }, 1000);
   }
 });
+
 
 function loadNextQuestion() {
   const { question, correctAnswer, options } = generateQuestion();
