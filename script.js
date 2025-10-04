@@ -253,12 +253,12 @@ async function endGame() {
 
 function generateQuestion() {
   const types = [
-    { type: 'whole', factors: [10, 100], id: 'whole10' },
-    { type: 'decimal', factors: [10, 100], id: 'decimal10' },
-    { type: 'whole', factors: [1000], id: 'whole1000' },
-    { type: 'decimal', factors: [1000], id: 'decimal1000' },
-    { type: 'whole', factors: [0.1, 0.01], id: 'wholePoint1' },
-    { type: 'decimal', factors: [0.1, 0.01], id: 'decimalPoint1' }
+    { type: 'whole', factors: [10, 100], id: 'whole10', places: [0, 0, 0] },
+    { type: 'decimal', factors: [10, 100], id: 'decimal10', places: [1, 2, 1] },
+    { type: 'whole', factors: [1000], id: 'whole1000', places: [0, 0, 0] },
+    { type: 'decimal', factors: [1000], id: 'decimal1000', places: [2, 3, 2] },
+    { type: 'whole', factors: [0.1, 0.01], id: 'wholePoint1', places: [1, 2, 1] },
+    { type: 'decimal', factors: [0.1, 0.01], id: 'decimalPoint1', places: [2, 3, 2] }
   ];
 
   const selectedTypes = types.filter(t => allowedTypes.includes(t.id));
@@ -267,56 +267,50 @@ function generateQuestion() {
   }
 
   const chosen = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
-  const digit1 = Math.floor(Math.random() * 9) + 1; // 1-9
-  const digit2 = Math.floor(Math.random() * 9) + 1; // 1-9
-  const digits = `${digit1}${digit2}`; // always two digits (could expand to three)
-  // pick three unique place values from the chosen.places
+  const digit1 = Math.floor(Math.random() * 9) + 1;
+  const digit2 = Math.floor(Math.random() * 9) + 1;
+  const digits = `${digit1}${digit2}`;
+
   const places = chosen.places.slice();
-  while (places.length < 3) places.push(places[0]); // in case there are fewer than 3
+  while (places.length < 3) places.push(places[0]);
   const shuffledPlaces = places.sort(() => Math.random() - 0.5);
   const [placeA, placeB, placeC] = shuffledPlaces;
 
-  // Helper to create a number string with decimal point at the right place
   function makeNumber(digs, decimalPlaces) {
     let n = digs;
     while (n.length < decimalPlaces + 1) n = "0" + n;
     const insertAt = n.length - decimalPlaces;
-    return insertAt === n.length
-      ? n
-      : n.slice(0, insertAt) + "." + n.slice(insertAt);
+    return insertAt === n.length ? n : n.slice(0, insertAt) + "." + n.slice(insertAt);
   }
 
-  // Format as number with up to three decimal places (removes floating point errors)
   function formatNumber(str) {
     return parseFloat(str).toFixed(3).replace(/\.?0+$/, "");
   }
 
-  // Pick which slot is unknown
   const unknownPosition = Math.floor(Math.random() * 3);
 
-  // Assign values
   const vals = [
-    makeNumber(digits, placeA), // base
-    makeNumber(digits, placeB), // factor/result
-    makeNumber(digits, placeC)  // result/factor
+    makeNumber(digits, placeA),
+    makeNumber(digits, placeB),
+    makeNumber(digits, placeC)
   ].map(formatNumber);
 
   let question, correctAnswer;
 
-  if (unknownPosition === 0) {
-    question = `? × ${vals[1]} = ${vals[2]}`;
-    correctAnswer = vals[0];
-  } else if (unknownPosition === 1) {
-    question = `${vals[0]} × ? = ${vals[2]}`;
-    correctAnswer = vals[1];
-  } else {
-    question = `${vals[0]} × ${vals[1]} = ?`;
-    correctAnswer = vals[2];
-  }
-
-  // Division variant, randomize whether it's multiply or divide
   if (Math.random() < 0.5) {
-    // Division: a ÷ b = c
+    // Multiplication
+    if (unknownPosition === 0) {
+      question = `? × ${vals[1]} = ${vals[2]}`;
+      correctAnswer = vals[0];
+    } else if (unknownPosition === 1) {
+      question = `${vals[0]} × ? = ${vals[2]}`;
+      correctAnswer = vals[1];
+    } else {
+      question = `${vals[0]} × ${vals[1]} = ?`;
+      correctAnswer = vals[2];
+    }
+  } else {
+    // Division
     if (unknownPosition === 0) {
       question = `? ÷ ${vals[1]} = ${vals[2]}`;
       correctAnswer = vals[0];
@@ -330,9 +324,9 @@ function generateQuestion() {
   }
 
   const options = generatePlaceValueOptions(correctAnswer, digits);
-
   return { question, correctAnswer, options };
 }
+
 
 // Improved options generator: only permutes decimal locations for the same digits
 function generatePlaceValueOptions(correct, digits) {
