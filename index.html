@@ -19,6 +19,7 @@
       storageBucket: "place-value-shifter.appspot.com",
       messagingSenderId: "388817467603",
       appId: "1:388817467603:web:26f323802399f959dd7c26"
+      measurementId: "G-TMZC74RWR2"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -32,13 +33,12 @@
     <h1 class="text-5xl font-bold text-[#1B9AAA]">Place Value Shifter</h1>
 
   <!-- Initial Screen -->
-  <div id="initial-screen" class="flex flex-col items-center justify-center h-screen space-y-6">
-    <div class="max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center">
-      <h1 class="text-4xl font-bold text-[#1B9AAA]">Place Value Shifter</h1>
-      <button onclick="showJoinScreen()" class="bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl text-xl hover:bg-cyan-700 transition">Join a Game</button>
-      <button onclick="showCreateScreen()" class="bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl text-xl hover:bg-cyan-700 transition">Create a New Game</button>
+  <div id="initial-screen">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <button onclick="showJoinScreen()" class="btn p-6 font-bold rounded-xl text-2xl">Join a Game</button>
+        <button onclick="showCreateScreen()" class="btn p-6 font-bold rounded-xl text-2xl">Create a New Game</button>
+      </div>
     </div>
-  </div>
 
   <!-- Join Screen -->
   <div id="login-screen" class="hidden flex flex-col items-center justify-center h-screen">
