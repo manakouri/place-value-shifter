@@ -151,14 +151,25 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 // Countdown timer
 function startCountdown(seconds) {
   let remaining = seconds;
+  const countdownDisplay = document.getElementById('host-countdown');
+
   countdownInterval = setInterval(() => {
     remaining--;
+
+    // ✅ Update host countdown if visible
+    if (countdownDisplay) {
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      countdownDisplay.textContent = `⏳ Game ends in ${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
     if (remaining <= 0) {
       clearInterval(countdownInterval);
       endGame();
     }
   }, 1000);
 }
+
 
 function activateLiveLeaderboard(gameCode) {
   const teamsRef = collection(db, "games", gameCode, "teams");
