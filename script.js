@@ -3,8 +3,11 @@ import {
   doc,
   setDoc,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+const db = window.db;
 
 // Screen toggling
 function showJoinScreen() {
@@ -63,8 +66,15 @@ let teamsJoined = [];
 let gameStarted = false;
 
 // Start game button
-document.getElementById('start-game-btn').addEventListener('click', () => {
-  gameStarted = true;
+document.getElementById('start-game-btn').addEventListener('click', async () => {
+  const gameCode = localStorage.getItem('currentGameCode');
+
+  // 🔁 Update Firestore to signal game start
+  await setDoc(doc(db, "games", gameCode), {
+    gameStarted: true
+  }, { merge: true });
+
+  // 🔁 Start game for host
   document.getElementById('create-game-screen').classList.add('hidden');
   document.getElementById('game-screen').classList.remove('hidden');
   teamScore = 0;
@@ -111,6 +121,19 @@ document.getElementById('login-btn').addEventListener('click', async () => {
         <p class="text-lg text-gray-700 mt-2">⏳ Waiting for the game to start...</p>
       </div>
     `;
+
+    // 🔁 Listen for game start from Firestore
+onSnapshot(doc(db, "games", gameCode), (docSnap) => {
+  if (docSnap.exists() && docSnap.data().gameStarted) {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    document.getElementById('team-display').textContent = `Team: ${teamName}`;
+    teamScore = 0;
+    correctCount = 0;
+    totalQuestions = 0;
+    updateScore();
+    loadNextQuestion();
+  }
 
     const checkStartInterval = setInterval(() => {
       if (gameStarted) {
