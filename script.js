@@ -99,7 +99,6 @@ document.getElementById('login-btn').addEventListener('click', async () => { // 
       }
     }
   });
-</script>
 
 
     // ✅ Show waiting screen
