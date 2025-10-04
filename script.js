@@ -59,28 +59,48 @@ document.getElementById('start-game-btn').addEventListener('click', () => {
   loadNextQuestion();
 });
 
-document.getElementById('login-btn').addEventListener('click', () => {
-  const gameCode = document.getElementById('game-code').value.trim();
-  const teamName = document.getElementById('team-name').value.trim();
+document.getElementById('login-btn').addEventListener('click', async () => { // Add 'async' here
+    const gameCode = document.getElementById('game-code').value.trim();
+    const teamName = document.getElementById('team-name').value.trim();
 
-  if (gameCode && teamName) {
-    if (!teamsJoined.includes(teamName)) {
-      teamsJoined.push(teamName);
+    if (gameCode && teamName) {
+      if (!teamsJoined.includes(teamName)) {
+        teamsJoined.push(teamName);
 
-      // ✅ Save to Firestore
-      db.collection("games").doc(gameCode).collection("teams").doc(teamName).set({
-        name: teamName,
-        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+        // ✅ Save to Firestore (MODULAR API)
+        try {
+          // 1. Get a reference to the 'games' collection
+          const gamesCollectionRef = collection(db, "games");
+          // 2. Get a reference to the specific game document (e.g., gameCode)
+          const gameDocRef = doc(gamesCollectionRef, gameCode);
+          // 3. Get a reference to the 'teams' subcollection within that game
+          const teamsSubCollectionRef = collection(gameDocRef, "teams");
+          // 4. Get a reference to the specific team document (e.g., teamName)
+          const teamDocRef = doc(teamsSubCollectionRef, teamName);
 
-      // ✅ Update local team list UI (optional for joiner screen)
-      const teamList = document.getElementById('team-list');
-      if (teamList) {
-        const li = document.createElement('li');
-        li.textContent = teamName;
-        teamList.appendChild(li);
+          // 5. Use setDoc to write the data
+          await setDoc(teamDocRef, { // Add 'await' here
+            name: teamName,
+            joinedAt: serverTimestamp() // Modular way to get a server timestamp
+          });
+
+          console.log(`Team '${teamName}' successfully added to game '${gameCode}'!`);
+
+          // ✅ Update local team list UI (optional for joiner screen)
+          const teamList = document.getElementById('team-list');
+          if (teamList) {
+            const li = document.createElement('li');
+            li.textContent = teamName;
+            teamList.appendChild(li);
+          }
+        } catch (error) {
+          console.error("Error writing team to Firestore: ", error);
+        }
       }
     }
+  });
+</script>
+
 
     // ✅ Show waiting screen
     document.getElementById('login-screen').innerHTML = `
