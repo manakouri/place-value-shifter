@@ -88,40 +88,55 @@
   </div>
 
   <!-- Create Game Screen -->
-  <div id="create-game-screen" class="hidden max-w-2xl mx-auto bg-white shadow-xl rounded-xl p-8 space-y-6 text-center">
+  <div id="create-game-screen" class="hidden max-w-3xl mx-auto bg-white shadow-xl rounded-xl p-8 space-y-8 text-center">
 
   <!-- Title -->
-  <h2 class="text-3xl font-bold text-[#1B9AAA]">Create Game</h2>
+  <h2 class="text-4xl font-bold text-[#1B9AAA]">Create Game</h2>
 
   <!-- Game Code Display -->
-  <p class="text-xl mt-2">Game Code:</p>
-  <p id="generated-game-code" class="text-3xl font-mono text-blue-700 tracking-widest"></p>
+  <div class="mt-4">
+    <p class="text-2xl font-semibold text-gray-800">Game Code:</p>
+    <p id="generated-game-code" class="text-5xl font-extrabold text-blue-700 tracking-widest mt-2"></p>
+  </div>
 
   <!-- Time Selection -->
   <div class="mt-6">
-    <label for="time-select" class="block text-lg font-semibold text-gray-800 mb-2">Select Game Duration:</label>
-    <select id="time-select" class="w-48 text-lg p-3 border border-gray-300 rounded-lg shadow-sm">
+    <label for="time-select" class="block text-xl font-semibold text-gray-800 mb-2">Select Game Duration:</label>
+    <select id="time-select" class="w-56 text-xl p-3 border border-gray-300 rounded-lg shadow-sm">
       <option value="300">5 minutes</option>
       <option value="420">7 minutes</option>
       <option value="600">10 minutes</option>
     </select>
   </div>
 
+  <!-- Question Type Selection -->
+  <div class="mt-8 text-left">
+    <h3 class="text-2xl font-semibold text-gray-900 mb-4">Choose Question Types:</h3>
+    <div class="grid grid-cols-2 gap-4 text-lg">
+      <label><input type="checkbox" value="whole10" checked> Whole ×10 or ÷10</label>
+      <label><input type="checkbox" value="decimal10" checked> Decimal ×10 or ÷10</label>
+      <label><input type="checkbox" value="whole1000"> Whole ×1000 or ÷1000</label>
+      <label><input type="checkbox" value="decimal1000"> Decimal ×1000 or ÷1000</label>
+      <label><input type="checkbox" value="wholePoint1"> Whole ×0.1 or ÷0.1</label>
+      <label><input type="checkbox" value="decimalPoint1"> Decimal ×0.1 or ÷0.1</label>
+    </div>
+  </div>
+
   <!-- Start Button -->
-  <button id="start-game-btn" class="mt-6 bg-green-600 text-white text-xl font-bold px-6 py-3 rounded-lg hover:bg-green-700 transition">
+  <button id="start-game-btn" class="mt-8 bg-green-600 text-white text-2xl font-bold px-8 py-4 rounded-lg hover:bg-green-700 transition">
     🚀 Start Game
   </button>
 
   <!-- Teams Joined -->
-  <div class="mt-8 text-left">
+  <div class="mt-10 text-left">
     <h3 class="text-2xl font-semibold text-gray-900 mb-2">Teams Joined:</h3>
-    <ul id="team-list" class="space-y-2 text-lg text-gray-800 list-disc list-inside"></ul>
+    <ul id="team-list" class="space-y-2 text-xl text-gray-800 list-disc list-inside"></ul>
   </div>
 
   <!-- Live Leaderboard -->
   <div class="mt-10 text-left">
     <h3 class="text-2xl font-semibold text-[#1B9AAA] mb-2">Live Leaderboard:</h3>
-    <ul id="live-leaderboard" class="space-y-3 text-lg text-gray-900 list-none"></ul>
+    <ul id="live-leaderboard" class="space-y-3 text-xl text-gray-900 list-none"></ul>
   </div>
 
 </div>
