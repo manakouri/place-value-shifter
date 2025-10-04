@@ -100,38 +100,37 @@ document.getElementById('login-btn').addEventListener('click', async () => {
         joinedAt: serverTimestamp()
       });
 
-    // ✅ Update team list UI (optional for host)
-const teamList = document.getElementById('team-list');
-if (teamList) {
-  const li = document.createElement('li');
-  li.textContent = teamName;
-  teamList.appendChild(li);
-}
+      // ✅ Show waiting screen safely
+      const waitingContainer = document.createElement('div');
+      waitingContainer.className = "max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center";
+      waitingContainer.innerHTML = `
+        <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
+        <p class="text-xl mt-4">✅ Joined game <strong>${gameCode}</strong></p>
+        <p class="text-lg text-gray-700 mt-2">⏳ Waiting for the game to start...</p>
+      `;
+      document.getElementById('login-screen').innerHTML = '';
+      document.getElementById('login-screen').appendChild(waitingContainer);
 
-// ✅ Show waiting screen safely
-const waitingContainer = document.createElement('div');
-waitingContainer.className = "max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center";
-waitingContainer.innerHTML = `
-  <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
-  <p class="text-xl mt-4">✅ Joined game <strong>${gameCode}</strong></p>
-  <p class="text-lg text-gray-700 mt-2">⏳ Waiting for the game to start...</p>
-`;
-document.getElementById('login-screen').innerHTML = '';
-document.getElementById('login-screen').appendChild(waitingContainer);
+      // ✅ Listen for game start from Firestore
+      onSnapshot(gameDocRef, (docSnap) => {
+        if (docSnap.exists() && docSnap.data().gameStarted) {
+          document.getElementById('login-screen').classList.add('hidden');
+          document.getElementById('game-screen').classList.remove('hidden');
+          document.getElementById('team-display').textContent = `Team: ${teamName}`;
+          teamScore = 0;
+          correctCount = 0;
+          totalQuestions = 0;
+          updateScore();
+          loadNextQuestion();
+        }
+      });
 
-// ✅ Listen for game start from Firestore
-onSnapshot(doc(db, "games", gameCode), (docSnap) => {
-  if (docSnap.exists() && docSnap.data().gameStarted) {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('game-screen').classList.remove('hidden');
-    document.getElementById('team-display').textContent = `Team: ${teamName}`;
-    teamScore = 0;
-    correctCount = 0;
-    totalQuestions = 0;
-    updateScore();
-    loadNextQuestion();
+    } catch (error) {
+      console.error("Error joining game:", error);
+    }
   }
-});
+}); // ✅ This closes the entire click handler
+
 
 
 // Question logic
