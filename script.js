@@ -2,9 +2,9 @@ import {
   collection,
   doc,
   setDoc,
+  getDoc,
   onSnapshot,
-  serverTimestamp,
-  getDoc
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 const db = window.db;
@@ -63,13 +63,17 @@ let teamScore = 0;
 let correctCount = 0;
 let totalQuestions = 0;
 let teamsJoined = [];
+let countdownInterval = null;
 
-// Start game button
+// Host starts game
 document.getElementById('start-game-btn').addEventListener('click', async () => {
   const gameCode = localStorage.getItem('currentGameCode');
+  const gameDuration = parseInt(document.getElementById('time-select').value); // in seconds
+  const gameEndsAt = Date.now() + gameDuration * 1000;
 
   await setDoc(doc(db, "games", gameCode), {
-    gameStarted: true
+    gameStarted: true,
+    gameEndsAt: gameEndsAt
   }, { merge: true });
 
   document.getElementById('create-game-screen').classList.add('hidden');
@@ -79,9 +83,10 @@ document.getElementById('start-game-btn').addEventListener('click', async () => 
   totalQuestions = 0;
   updateScore();
   loadNextQuestion();
+  startCountdown(gameDuration);
 });
 
-// Join game button
+// Joiner joins game
 document.getElementById('login-btn').addEventListener('click', async () => {
   const gameCode = document.getElementById('game-code').value.trim();
   const teamName = document.getElementById('team-name').value.trim();
@@ -90,17 +95,14 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     teamsJoined.push(teamName);
 
     try {
-      const gamesCollectionRef = collection(db, "games");
-      const gameDocRef = doc(gamesCollectionRef, gameCode);
-      const teamsSubCollectionRef = collection(gameDocRef, "teams");
-      const teamDocRef = doc(teamsSubCollectionRef, teamName);
+      const gameDocRef = doc(db, "games", gameCode);
+      const teamDocRef = doc(collection(gameDocRef, "teams"), teamName);
 
       await setDoc(teamDocRef, {
         name: teamName,
         joinedAt: serverTimestamp()
       });
 
-      // ✅ Show waiting screen safely
       const waitingContainer = document.createElement('div');
       waitingContainer.className = "max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center";
       waitingContainer.innerHTML = `
@@ -111,9 +113,11 @@ document.getElementById('login-btn').addEventListener('click', async () => {
       document.getElementById('login-screen').innerHTML = '';
       document.getElementById('login-screen').appendChild(waitingContainer);
 
-      // ✅ Listen for game start from Firestore
       onSnapshot(gameDocRef, (docSnap) => {
         if (docSnap.exists() && docSnap.data().gameStarted) {
+          const endTime = docSnap.data().gameEndsAt;
+          const remaining = Math.floor((endTime - Date.now()) / 1000);
+
           document.getElementById('login-screen').classList.add('hidden');
           document.getElementById('game-screen').classList.remove('hidden');
           document.getElementById('team-display').textContent = `Team: ${teamName}`;
@@ -122,6 +126,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
           totalQuestions = 0;
           updateScore();
           loadNextQuestion();
+          startCountdown(remaining);
         }
       });
 
@@ -129,9 +134,19 @@ document.getElementById('login-btn').addEventListener('click', async () => {
       console.error("Error joining game:", error);
     }
   }
-}); // ✅ This closes the entire click handler
+});
 
-
+// Countdown timer
+function startCountdown(seconds) {
+  let remaining = seconds;
+  countdownInterval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(countdownInterval);
+      endGame();
+    }
+  }, 1000);
+}
 
 // Question logic
 function loadNextQuestion() {
@@ -159,26 +174,42 @@ function handleAnswer(isCorrect) {
   }
   updateScore();
 
-  if (totalQuestions >= 10) {
-    endGame();
-  } else {
-    loadNextQuestion();
-  }
+  loadNextQuestion();
 }
 
 function updateScore() {
   scoreDisplay.textContent = `Score: ${teamScore}`;
 }
 
-function endGame() {
+// End game and show leaderboard
+async function endGame() {
+  clearInterval(countdownInterval);
   document.getElementById('game-screen').classList.add('hidden');
   finalLeaderboard.classList.remove('hidden');
-  finalLeaderboardList.innerHTML = `
-    <li><strong>Score:</strong> ${teamScore}</li>
-    <li><strong>Correct Answers:</strong> ${correctCount}</li>
-    <li><strong>Total Questions:</strong> ${totalQuestions}</li>
-    <li><strong>Accuracy:</strong> ${Math.round((correctCount / totalQuestions) * 100)}%</li>
-  `;
+
+  const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+  const gameCode = localStorage.getItem('currentGameCode');
+  const teamName = document.getElementById('team-display').textContent.replace('Team: ', '');
+
+  const teamDocRef = doc(db, "games", gameCode, "teams", teamName);
+  await setDoc(teamDocRef, {
+    score: teamScore,
+    correct: correctCount,
+    total: totalQuestions,
+    accuracy: accuracy
+  }, { merge: true });
+
+  // Host view: show full leaderboard
+  const teamsRef = collection(db, "games", gameCode, "teams");
+  onSnapshot(teamsRef, (snapshot) => {
+    finalLeaderboardList.innerHTML = '';
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>${data.name}</strong> — ${data.score} pts, ${data.accuracy}% accuracy (${data.correct}/${data.total})`;
+      finalLeaderboardList.appendChild(li);
+    });
+  });
 }
 
 function generateQuestion() {
