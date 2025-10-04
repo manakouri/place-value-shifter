@@ -57,8 +57,9 @@
 
 <script type="module">
   // 1. Import the specific modular functions you need
+ <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
@@ -69,10 +70,7 @@
     appId: "1:388817467603:web:26f323802399f959dd7c26",
   };
 
-  // 2. Initialize Firebase using the modular `initializeApp` function
-  const app = initializeApp(firebaseConfig);
-
-  // 3. Get the Firestore instance using the modular `getFirestore` function
+ const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
   // Now 'db' is your Firestore database instance, ready for use!
