@@ -257,12 +257,37 @@ function formatNumber(num) {
 
 function generateQuestion() {
   const powersOfTen = [10, 100, 1000, 0.1, 0.01];
-  const unknownPosition = Math.floor(Math.random() * 3);
-  const isMultiply = Math.random() < 0.5;
 
-  const digitLength = Math.random() < 0.5 ? 2 : 3;
+  // Define all possible types
+  const allTypes = [
+    { id: 'whole10', digits: 2, factor: 10 },
+    { id: 'whole100', digits: 2, factor: 100 },
+    { id: 'whole1000', digits: 3, factor: 1000 },
+    { id: 'decimal10', digits: 2, factor: 10 },
+    { id: 'decimal100', digits: 2, factor: 100 },
+    { id: 'decimal1000', digits: 3, factor: 1000 },
+    { id: 'wholePoint1', digits: 2, factor: 0.1 },
+    { id: 'decimalPoint1', digits: 2, factor: 0.1 },
+    { id: 'decimalPoint01', digits: 2, factor: 0.01 }
+  ];
+
+  // Filter based on allowedTypes from Firestore
+  const filteredTypes = allTypes.filter(t => allowedTypes.includes(t.id));
+  if (filteredTypes.length === 0) {
+    return { question: "No question types selected.", correctAnswer: "", options: [] };
+  }
+
+  // Pick a type and operation
+  const chosen = filteredTypes[Math.floor(Math.random() * filteredTypes.length)];
+  const digitLength = chosen.digits;
+  const factor = chosen.factor;
+  const isMultiply = Math.random() < 0.5;
+  const unknownPosition = Math.floor(Math.random() * 3); // 0 = a, 1 = b, 2 = c
+
+  // Generate digit string
   const digits = Array.from({ length: digitLength }, () => Math.floor(Math.random() * 9) + 1).join('');
 
+  // Create base number with decimal point
   const decimalPlaces = Math.floor(Math.random() * (digitLength + 1));
   let baseStr = digits;
   if (decimalPlaces > 0) {
@@ -270,15 +295,7 @@ function generateQuestion() {
     baseStr = baseStr.slice(0, baseStr.length - decimalPlaces) + '.' + baseStr.slice(baseStr.length - decimalPlaces);
   }
   const base = parseFloat(baseStr);
-  const factor = powersOfTen[Math.floor(Math.random() * powersOfTen.length)];
   const result = isMultiply ? base * factor : base / factor;
-
-  function makeNumber(digs, decimalPlaces) {
-    let n = digs;
-    while (n.length < decimalPlaces + 1) n = "0" + n;
-    const insertAt = n.length - decimalPlaces;
-    return insertAt === n.length ? n : n.slice(0, insertAt) + "." + n.slice(insertAt);
-  }
 
   const formattedBase = formatNumber(base);
   const formattedFactor = formatNumber(factor);
@@ -304,6 +321,7 @@ function generateQuestion() {
 
   return { question, correctAnswer, options };
 }
+
 
 function generatePowerOfTenOptions(correct) {
   const allPowers = [10, 100, 1000, 0.1, 0.01];
