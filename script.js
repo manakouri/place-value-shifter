@@ -144,6 +144,10 @@ function listenForGameStart(code) {
       startTimer(gameDuration, document.getElementById('game-timer'), endGame);
       nextQuestion();
     }
+    if (!selectedTypes || selectedTypes.length === 0) {
+  selectedTypes = ["Whole x 10", "Whole ÷ 10"]; // or any safe default
+}
+
   });
 }
 
