@@ -26,6 +26,8 @@ window.checkAnswer = checkAnswer;
 window.applyLuck = applyLuck;
 window.checkPracticeAnswer = checkPracticeAnswer;
 
+let score = 0;
+let correctStreak = 0;
 
 // Global variables
 let gameCode = '';
@@ -120,16 +122,16 @@ function startGame() {
 }
 
 function renderPlaceValueTable() {
-  const tableDivs = document.querySelectorAll('#place-value-table');
-  tableDivs.forEach(div => {
-    div.innerHTML = `
-      <table style="margin: 0 auto;">
-        <tr><th>Thousands</th><th>Hundreds</th><th>Tens</th><th>Ones</th><th>Decimal</th><th>Tenths</th><th>Hundredths</th></tr>
-        <tr><td>1000</td><td>100</td><td>10</td><td>1</td><td>.</td><td>0.1</td><td>0.01</td></tr>
-      </table>
-    `;
-  });
+  const div = document.getElementById('place-value-table');
+  if (!div) return;
+  div.innerHTML = `
+    <table style="margin: 0 auto;">
+      <tr><th>Thousands</th><th>Hundreds</th><th>Tens</th><th>Ones</th><th>Decimal</th><th>Tenths</th><th>Hundredths</th></tr>
+      <tr><td>1000</td><td>100</td><td>10</td><td>1</td><td>.</td><td>0.1</td><td>0.01</td></tr>
+    </table>
+  `;
 }
+
 
 function listenForGameStart(code) {
   const gameRef = ref(db, `games/${code}`);
@@ -163,6 +165,11 @@ function startTimer(duration, display, callback) {
 
 function nextQuestion() {
   const q = generateQuestion(selectedTypes);
+  if (!q || !q.prompt || !Array.isArray(q.options)) {
+    console.warn("Invalid question generated:", q);
+    return;
+  }
+
   const container = document.getElementById('question-container');
   container.innerHTML = `<p>${q.prompt}</p>` + q.options.map((opt, i) =>
     `<button onclick="checkAnswer(${i}, ${q.correct})">${opt}</button>`).join('');
