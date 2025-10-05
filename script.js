@@ -34,6 +34,7 @@ let correctStreak = 0;
 let gameDuration = 0;
 let selectedTypes = [];
 let timerInterval;
+let teamName = "";
 
 const screens = document.querySelectorAll('.screen');
 function showScreen(id) {
@@ -68,6 +69,7 @@ function setupCreateGame() {
 function joinGame() {
   const code = document.getElementById('join-code').value;
   const name = document.getElementById('team-name').value;
+   teamName = name;
   if (!code || !name) return alert("Enter both fields");
 
   const teamRef = ref(db, `games/${code}/teams/${name}`);
@@ -252,6 +254,7 @@ function checkPracticeAnswer(index, correctIndex, prompt, options) {
 function generateQuestion(selectedTypes) {
   const type = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
   let baseNumber, power, operation, prompt, correctAnswer, options = [];
+  if (!type) return null;
 
   function getBase(type) {
     if (type.includes("Whole")) return Math.floor(Math.random() * 90 + 10); // 10–99
@@ -335,7 +338,7 @@ function shuffleArray(arr) {
 function updateScore(newScore) {
   const code = gameCode;
   const name = document.getElementById('team-name')?.value || "Practice";
-  const scoreRef = ref(db, `games/${code}/teams/${name}/score`);
+  const scoreRef = ref(db, `games/${code}/teams/${teamName}/score`);
   set(scoreRef, newScore);
 }
 
