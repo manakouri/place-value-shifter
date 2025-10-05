@@ -72,10 +72,14 @@ let timerInterval;
 function startGame() {
   selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
   gameDuration = parseInt(document.getElementById('game-length').value) * 60;
-  showScreen('game-screen');
-  startTimer(gameDuration, document.getElementById('game-timer'), endGame);
-  nextQuestion();
-}
+
+  const gameRef = ref(db, `games/${gameCode}`);
+  update(gameRef, {
+    started: true,
+    types: selectedTypes,
+    duration: gameDuration,
+    startTime: Date.now()
+  });
 
 function startTimer(duration, display, callback) {
   let time = duration;
@@ -270,16 +274,6 @@ function shuffleArray(arr) {
   
 }
 
-function joinGame() {
-  const code = document.getElementById('join-code').value;
-  const name = document.getElementById('team-name').value;
-  if (!code || !name) return alert("Enter both fields");
-
-  const teamRef = ref(db, `games/${code}/teams/${name}`);
-  set(teamRef, { score: 0, joinedAt: Date.now() });
-
-  listenForGameStart(code);
-}
 function listenForTeams(code) {
   const teamsRef = ref(db, `games/${code}/teams`);
   onValue(teamsRef, snapshot => {
@@ -289,17 +283,6 @@ function listenForTeams(code) {
     startGameBtn.disabled = teams.length === 0;
   });
 }
-function startGame() {
-  selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
-  gameDuration = parseInt(document.getElementById('game-length').value) * 60;
-
-  const gameRef = ref(db, `games/${gameCode}`);
-  update(gameRef, {
-    started: true,
-    types: selectedTypes,
-    duration: gameDuration,
-    startTime: Date.now()
-  });
 
   showScreen('game-screen');
   startTimer(gameDuration, document.getElementById('game-timer'), endGame);
