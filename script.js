@@ -100,6 +100,7 @@ function applyLuck(type) {
   document.getElementById('luck-boxes').classList.add('hidden');
   nextQuestion();
 }
+
 function endGame() {
   const results = document.getElementById('final-results');
   results.classList.remove('hidden');
@@ -147,4 +148,92 @@ function checkPracticeAnswer(index, correctIndex, prompt, options) {
     practiceContainer.innerHTML = `<p>Try again: ${prompt}</p>` + options.map((opt, i) =>
       `<button onclick="checkPracticeAnswer(${i}, ${correctIndex}, '${prompt}', ${JSON.stringify(options)})">${opt}</button>`).join('');
   }
+}
+function generateQuestion(selectedTypes) {
+  const type = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
+  let baseNumber, power, operation, prompt, correctAnswer, options = [];
+
+  // Helper: generate number based on type
+  function getBase(type) {
+    if (type.includes("Whole")) return Math.floor(Math.random() * 90 + 10); // 10–99
+    if (type.includes("1dp")) return +(Math.random() * 9 + 1).toFixed(1); // 1.0–9.9
+    if (type.includes("2dp")) return +(Math.random() * 9 + 1).toFixed(2); // 1.00–9.99
+  }
+
+  baseNumber = getBase(type);
+  if (type.includes("x")) {
+    operation = "×";
+    power = type.includes("100") ? 100 : 10;
+    if (type.includes("1000")) power = 1000;
+    const result = +(baseNumber * power).toFixed(2);
+    const missing = ["a", "b", "c"][Math.floor(Math.random() * 3)];
+    if (missing === "a") {
+      correctAnswer = baseNumber;
+      prompt = `? ${operation} ${power} = ${result}`;
+      options = generateDistractors(correctAnswer, baseNumber);
+    } else if (missing === "b") {
+      correctAnswer = power;
+      prompt = `${baseNumber} ${operation} ? = ${result}`;
+      options = generatePowerDistractors(correctAnswer);
+    } else {
+      correctAnswer = result;
+      prompt = `${baseNumber} ${operation} ${power} = ?`;
+      options = generateDistractors(correctAnswer, baseNumber);
+    }
+  } else {
+    operation = "÷";
+    power = type.includes("100") ? 100 : 10;
+    const result = +(baseNumber / power).toFixed(2);
+    const missing = ["a", "b", "c"][Math.floor(Math.random() * 3)];
+    if (missing === "a") {
+      correctAnswer = baseNumber;
+      prompt = `? ${operation} ${power} = ${result}`;
+      options = generateDistractors(correctAnswer, baseNumber);
+    } else if (missing === "b") {
+      correctAnswer = power;
+      prompt = `${baseNumber} ${operation} ? = ${result}`;
+      options = generatePowerDistractors(correctAnswer);
+    } else {
+      correctAnswer = result;
+      prompt = `${baseNumber} ${operation} ${power} = ?`;
+      options = generateDistractors(correctAnswer, baseNumber);
+    }
+  }
+
+  // Shuffle options
+  const correctIndex = Math.floor(Math.random() * 4);
+  options.splice(correctIndex, 0, correctAnswer);
+
+  return {
+    prompt,
+    options: options.map(o => o.toString()),
+    correct: correctIndex
+  };
+}
+
+// Distractors with same digits, different place values
+function generateDistractors(correct, base) {
+  const digits = base.toString().replace('.', '').split('');
+  const distractors = new Set();
+  while (distractors.size < 3) {
+    const shuffled = shuffleArray([...digits]).join('');
+    const val = parseFloat(shuffled);
+    if (val !== correct) distractors.add(val);
+  }
+  return Array.from(distractors);
+}
+
+// Distractors for powers of 10
+function generatePowerDistractors(correct) {
+  const powers = [0.01, 0.1, 10, 100, 1000];
+  return powers.filter(p => p !== correct).slice(0, 3);
+}
+
+// Shuffle helper
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
