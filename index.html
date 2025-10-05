@@ -5,70 +5,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Place Value Shifter</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-analytics.js"></script>
 </head>
 <body>
-  <div id="app">
+  <div id="app" style="text-align: center;">
+    
     <!-- Initial Screen -->
     <section id="initial-screen" class="screen active">
-      <h1>Place Value Shifter</h1>
-      <button onclick="showScreen('create-game')">Create Game</button>
-      <button onclick="showScreen('join-game')">Join Game</button>
-      <button onclick="showScreen('practice-mode')">Practice Mode</button>
+      <div class="card">
+        <h1>Place Value Shifter</h1>
+        <p>Build your confidence multiplying and dividing by powers of 10</p>
+        <button onclick="showScreen('create-game')">Create Game</button>
+        <button onclick="showScreen('join-game')">Join Game</button>
+        <button onclick="showScreen('practice-mode')">Practice Mode</button>
+      </div>
     </section>
 
     <!-- Create Game Screen -->
     <section id="create-game" class="screen">
-      <h2>Create Game</h2>
-      <p>Game Code: <span id="game-code"></span></p>
-      <label>Game Length:
-        <select id="game-length">
-          <option value="5">5 min</option>
-          <option value="7">7 min</option>
-          <option value="10">10 min</option>
-        </select>
-      </label>
-      <fieldset>
-        <legend>Question Types</legend>
-        <div id="question-types"></div>
-      </fieldset>
-      <h3>Teams Joined</h3>
-      <ul id="team-list"></ul>
-      <button id="start-game-btn" disabled onclick="startGame()">Start Game</button>
-      <h3>Live Leaderboard</h3>
-      <ul id="leaderboard"></ul>
-      <p>Time Left: <span id="create-timer"></span></p>
-      <div id="place-value-table"></div>
+      <div class="card">
+        <h2>Create Game</h2>
+        <p>Game Code: <strong><span id="game-code"></span></strong></p>
+        <label>Game Length:
+          <select id="game-length">
+            <option value="5">5 min</option>
+            <option value="7">7 min</option>
+            <option value="10">10 min</option>
+          </select>
+        </label>
+        <fieldset>
+          <legend>Select Question Types</legend>
+          <div id="question-types" style="text-align: left;"></div>
+        </fieldset>
+        <h3>Teams Joined</h3>
+        <ul id="team-list"></ul>
+        <button id="start-game-btn" disabled onclick="startGame()">Start Game</button>
+        <h3>Live Leaderboard</h3>
+        <ul id="leaderboard"></ul>
+        <p>Time Left: <span id="create-timer"></span></p>
+        <div id="place-value-table"></div>
+      </div>
     </section>
 
     <!-- Join Game Screen -->
     <section id="join-game" class="screen">
-      <h2>Join Game</h2>
-      <input type="text" id="join-code" placeholder="Enter Game Code" />
-      <input type="text" id="team-name" placeholder="Enter Team Name" />
-      <button id="join-btn" onclick="joinGame()">Join</button>
+      <div class="card">
+        <h2>Join Game</h2>
+        <input type="text" id="join-code" placeholder="Enter Game Code" />
+        <input type="text" id="team-name" placeholder="Enter Team Name" />
+        <button id="join-btn" onclick="joinGame()">Join</button>
+      </div>
     </section>
 
     <!-- Game Screen -->
     <section id="game-screen" class="screen">
-      <h2>Game On!</h2>
-      <p>Time Left: <span id="game-timer"></span></p>
-      <p>Score: <span id="team-score">0</span></p>
-      <div id="question-container"></div>
-      <div id="luck-boxes" class="hidden"></div>
-      <div id="final-results" class="hidden"></div>
-      <div id="place-value-table"></div>
+      <div class="card">
+        <h2>Game On!</h2>
+        <p>Time Left: <span id="game-timer"></span></p>
+        <p>Score: <span id="team-score">0</span></p>
+        <div id="question-container"></div>
+        <div id="luck-boxes" class="hidden"></div>
+        <div id="final-results" class="hidden"></div>
+        <div id="place-value-table"></div>
+      </div>
     </section>
 
     <!-- Practice Mode -->
     <section id="practice-mode" class="screen">
-      <h2>Practice Mode</h2>
-      <button onclick="startChallenge()">3-Minute Challenge</button>
-      <button onclick="startPractice()">Custom Practice</button>
-      <div id="practice-container"></div>
-      <div id="place-value-table"></div>
+      <div class="card">
+        <h2>Practice Mode</h2>
+        <button onclick="startChallenge()">3-Minute Challenge</button>
+        <button onclick="startPractice()">Custom Practice</button>
+        <div id="practice-container"></div>
+        <div id="place-value-table"></div>
+      </div>
     </section>
-  </div>
-  <script type="module" src="script.js"></script>
 
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
