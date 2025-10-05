@@ -26,9 +26,6 @@ window.checkAnswer = checkAnswer;
 window.applyLuck = applyLuck;
 window.checkPracticeAnswer = checkPracticeAnswer;
 
-let score = 0;
-let correctStreak = 0;
-
 // Global variables
 let gameCode = '';
 let teams = [];
