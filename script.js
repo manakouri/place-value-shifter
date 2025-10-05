@@ -14,7 +14,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getDatabase(app, "https://place-value-shifter-default-rtdb.asia-southeast1.firebasedatabase.app");
 const analytics = getAnalytics(app);
 
 window.showScreen = showScreen;
