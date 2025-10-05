@@ -1,4 +1,8 @@
 // Firebase CDN setup (make sure <script> tags are in your HTML head)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-analytics.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
   authDomain: "place-value-shifter.firebaseapp.com",
@@ -9,9 +13,10 @@ const firebaseConfig = {
   measurementId: "G-TMZC74RWR2"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const analytics = firebase.analytics();
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const analytics = getAnalytics(app);
+
 
 // Global variables
 let gameCode = '';
@@ -58,15 +63,15 @@ function joinGame() {
   const name = document.getElementById('team-name').value;
   if (!code || !name) return alert("Enter both fields");
 
-  const teamRef = firebase.database().ref(`games/${code}/teams/${name}`);
-  teamRef.set({ score: 0, joinedAt: Date.now() });
+  const teamRef = ref(db, `games/${code}/teams/${name}`);
+  set(teamRef, { score: 0, joinedAt: Date.now() });
 
   listenForGameStart(code);
 }
 
 function listenForTeams(code) {
-  const teamsRef = firebase.database().ref(`games/${code}/teams`);
-  teamsRef.on('value', snapshot => {
+  const teamsRef = ref(db, `games/${code}/teams`);
+  onValue(teamsRef, snapshot => {
     const data = snapshot.val();
     teams = Object.keys(data || {});
     const teamList = document.getElementById('team-list');
@@ -76,8 +81,8 @@ function listenForTeams(code) {
 }
 
 function listenForLeaderboard(code) {
-  const leaderboardRef = firebase.database().ref(`games/${code}/teams`);
-  leaderboardRef.on('value', snapshot => {
+  const leaderboardRef = ref(db, `games/${code}/teams`);
+  onValue(leaderboardRef, snapshot => {
     const data = snapshot.val();
     const sorted = Object.entries(data || {}).sort((a, b) => b[1].score - a[1].score);
     const leaderboard = document.getElementById('leaderboard');
@@ -90,8 +95,8 @@ function startGame() {
   selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
   gameDuration = parseInt(document.getElementById('game-length').value) * 60;
 
-  const gameRef = firebase.database().ref(`games/${gameCode}`);
-  gameRef.update({
+  const gameRef = ref(db, `games/${gameCode}`);
+  update(gameRef, {
     started: true,
     types: selectedTypes,
     duration: gameDuration,
@@ -101,6 +106,20 @@ function startGame() {
   showScreen('game-screen');
   startTimer(gameDuration, document.getElementById('game-timer'), endGame);
   nextQuestion();
+}
+
+function listenForGameStart(code) {
+  const gameRef = ref(db, `games/${code}`);
+  onValue(gameRef, snapshot => {
+    const data = snapshot.val();
+    if (data?.started) {
+      selectedTypes = data.types;
+      gameDuration = data.duration;
+      showScreen('game-screen');
+      startTimer(gameDuration, document.getElementById('game-timer'), endGame);
+      nextQuestion();
+    }
+  });
 }
 
 function startTimer(duration, display, callback) {
@@ -282,8 +301,8 @@ function shuffleArray(arr) {
 function updateScore(newScore) {
   const code = gameCode;
   const name = document.getElementById('team-name')?.value || "Practice";
-  const scoreRef = firebase.database().ref(`games/${code}/teams/${name}/score`);
-  scoreRef.set(newScore);
+  const scoreRef = ref(db, `games/${code}/teams/${name}/score`);
+  set(scoreRef, newScore);
 }
 
 function endGame() {
