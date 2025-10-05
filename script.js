@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-analytics.js";
+import { update } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
@@ -105,13 +106,13 @@ function startGame() {
   selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
   gameDuration = parseInt(document.getElementById('game-length').value) * 60;
 
-  const gameRef = ref(db, `games/${gameCode}`);
-  updateDoc(gameRef, {
-    started: true,
-    types: selectedTypes,
-    duration: gameDuration,
-    startTime: Date.now()
-  });
+  update(ref(db, `games/${gameCode}`), {
+  started: true,
+  types: selectedTypes,
+  duration: gameDuration,
+  startTime: Date.now()
+});
+
 
   // ✅ Host stays on create screen
   startTimer(gameDuration, document.getElementById('create-timer'), () => {
