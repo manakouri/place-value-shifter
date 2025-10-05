@@ -142,12 +142,12 @@ function listenForGameStart(code) {
       gameDuration = data.duration;
       gameCode = code;
 
-      console.log("Starting game with duration:", gameDuration);
+      console.log("Starting game with types:", selectedTypes);
 
       showScreen('game-screen');
       renderPlaceValueTable();
       startTimer(gameDuration, document.getElementById('game-timer'), endGame);
-      nextQuestion();
+      nextQuestion(); // ✅ only after selectedTypes is set
     }
   });
 }
@@ -167,10 +167,14 @@ function startTimer(duration, display, callback) {
 }
 
 function nextQuestion() {
+  if (!Array.isArray(selectedTypes) || selectedTypes.length === 0) {
+    console.warn("No valid selectedTypes:", selectedTypes);
+    return;
+  }
+
   const q = generateQuestion(selectedTypes);
   if (!q || !q.prompt || !Array.isArray(q.options)) {
     console.warn("Invalid question generated:", q);
-    console.log("Generated question:", q);
     return;
   }
 
@@ -252,8 +256,14 @@ function checkPracticeAnswer(index, correctIndex, prompt, options) {
   }
 }
 
-function generateQuestion(selectedTypes) {
-  const type = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
+function generateQuestion(types) {
+  if (!Array.isArray(types) || types.length === 0) {
+    console.warn("generateQuestion received invalid types:", types);
+    return null;
+  }
+
+  const index = Math.floor(Math.random() * types.length);
+  const type = types[index];
   let baseNumber, power, operation, prompt, correctAnswer, options = [];
   if (!type) return null;
 
