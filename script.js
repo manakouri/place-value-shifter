@@ -19,9 +19,6 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
-
-let db; // Firebase database reference
-
 function initFirebase() {
   // const app = initializeApp(firebaseConfig);
   // db = getDatabase(app);
