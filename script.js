@@ -88,8 +88,12 @@ function checkAnswer(index, correctIndex) {
 function showLuckBoxes() {
   const luckBoxes = document.getElementById('luck-boxes');
   luckBoxes.classList.remove('hidden');
-  luckBoxes.innerHTML = ['Double', 'Triple', 'Halve'].map(label =>
-    `<button onclick="applyLuck('${label}')">${label}</button>`).join('');
+  luckBoxes.innerHTML = `
+    <p>Choose a secret box:</p>
+    <button onclick="applyLuck('Double')">Double</button>
+    <button onclick="applyLuck('Triple')">Triple</button>
+    <button onclick="applyLuck('Halve')">Halve</button>
+  `;
 }
 
 function applyLuck(type) {
@@ -98,6 +102,7 @@ function applyLuck(type) {
   if (type === 'Halve') score = Math.floor(score / 2);
   document.getElementById('team-score').textContent = score;
   document.getElementById('luck-boxes').classList.add('hidden');
+  correctStreak = 0;
   nextQuestion();
 }
 
