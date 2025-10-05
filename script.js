@@ -1,364 +1,101 @@
-let allowedTypes = []; // ✅ Global scope
+const screens = document.querySelectorAll('.screen');
+const gameCodeSpan = document.getElementById('game-code');
+const teamList = document.getElementById('team-list');
+const leaderboard = document.getElementById('leaderboard');
+const questionTypesDiv = document.getElementById('question-types');
+const joinBtn = document.getElementById('join-btn');
+const startGameBtn = document.getElementById('start-game-btn');
+const createTimer = document.getElementById('create-timer');
+const gameTimer = document.getElementById('game-timer');
+const questionContainer = document.getElementById('question-container');
+const luckBoxes = document.getElementById('luck-boxes');
+const finalResults = document.getElementById('final-results');
+const teamScore = document.getElementById('team-score');
+const practiceContainer = document.getElementById('practice-container');
 
-import {
-  collection,
-  doc,
-  setDoc,
-  getDoc,
-  onSnapshot,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+let gameCode = '';
+let teams = [];
+let score = 0;
+let correctStreak = 0;
+let timerInterval;
+let gameDuration = 0;
+let selectedTypes = [];
 
-const db = window.db;
-
-// Screen toggling
-function showJoinScreen() {
-  document.getElementById('initial-screen').classList.add('hidden');
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('create-game-screen').classList.add('hidden');
-  document.getElementById('game-screen').classList.add('hidden');
-  document.getElementById('final-leaderboard').classList.add('hidden');
+function showScreen(id) {
+  screens.forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'create-game') setupCreateGame();
+  if (id === 'practice-mode') setupPracticeOptions();
 }
 
-function showCreateScreen() {
-  document.getElementById('initial-screen').classList.add('hidden');
-  document.getElementById('create-game-screen').classList.remove('hidden');
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('game-screen').classList.add('hidden');
-  document.getElementById('final-leaderboard').classList.add('hidden');
-
-  generateGameCode();
-  const gameCode = localStorage.getItem('currentGameCode');
-
-  const gamesCollectionRef = collection(db, "games");
-  const gameDocRef = doc(gamesCollectionRef, gameCode);
-  const teamsCollectionRef = collection(gameDocRef, "teams");
-
-  onSnapshot(teamsCollectionRef, (snapshot) => {
-    const teamList = document.getElementById('team-list');
-    teamList.innerHTML = '';
-    snapshot.forEach(doc => {
-      const li = document.createElement('li');
-      li.textContent = doc.data().name;
-      teamList.appendChild(li);
-    });
+function setupCreateGame() {
+  gameCode = Math.floor(1000000 + Math.random() * 9000000).toString();
+  gameCodeSpan.textContent = gameCode;
+  questionTypesDiv.innerHTML = '';
+  const types = [
+    "Whole x 10", "Whole x 100", "Whole ÷ 10", "Whole ÷ 100",
+    "1dp x 10", "1dp x 100", "1dp ÷ 10", "1dp ÷ 100",
+    "2dp x 10", "2dp x 100", "2dp ÷ 10"
+  ];
+  types.forEach(type => {
+    const label = document.createElement('label');
+    label.innerHTML = `<input type="checkbox" value="${type}" /> ${type}`;
+    questionTypesDiv.appendChild(label);
   });
+  renderPlaceValueTable();
 }
 
-function generateGameCode() {
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-  document.getElementById('generated-game-code').textContent = code;
-  localStorage.setItem('currentGameCode', code);
+function joinGame() {
+  const code = document.getElementById('join-code').value;
+  const name = document.getElementById('team-name').value;
+  if (!code || !name) return alert("Enter both fields");
+  // TODO: Firebase write team name to game code
+  teams.push(name);
+  teamList.innerHTML = teams.map(t => `<li>${t}</li>`).join('');
+  if (teams.length > 0) startGameBtn.disabled = false;
 }
 
-window.showJoinScreen = showJoinScreen;
-window.showCreateScreen = showCreateScreen;
+function startGame() {
+  selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
+  gameDuration = parseInt(document.getElementById('game-length').value) * 60;
+  showScreen('game-screen');
+  startTimer(gameDuration, gameTimer, endGame);
+  nextQuestion();
+}
 
-// Game state
-const questionText = document.getElementById('question-text');
-const answerContainer = document.getElementById('answer-options');
-const scoreDisplay = document.getElementById('score-display');
-const finalLeaderboard = document.getElementById('final-leaderboard');
-const finalLeaderboardList = document.getElementById('final-leaderboard-list');
-
-let teamScore = 0;
-let correctCount = 0;
-let totalQuestions = 0;
-let teamsJoined = [];
-let countdownInterval = null;
-
-// Host starts game
-document.getElementById('start-game-btn').addEventListener('click', async () => {
-  const gameCode = localStorage.getItem('currentGameCode');
-  const gameDuration = parseInt(document.getElementById('time-select').value);
-  const gameEndsAt = Date.now() + gameDuration * 1000;
-
-  // ✅ Collect selected question types
-  const selectedTypes = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-    .map(cb => cb.value);
-
-  await setDoc(doc(db, "games", gameCode), {
-    gameStarted: true,
-    gameEndsAt: gameEndsAt,
-    questionTypes: selectedTypes
-  }, { merge: true });
-
-  startCountdown(gameDuration);
-  activateLiveLeaderboard(gameCode);
-});
-
-
-// Joiner joins game
-
-document.getElementById('login-btn').addEventListener('click', async () => {
-  const gameCode = document.getElementById('game-code').value.trim();
-  const teamName = document.getElementById('team-name').value.trim();
-
-  if (gameCode && teamName && !teamsJoined.includes(teamName)) {
-    teamsJoined.push(teamName);
-
-    try {
-      const gameDocRef = doc(db, "games", gameCode);
-      const teamDocRef = doc(collection(gameDocRef, "teams"), teamName);
-
-      await setDoc(teamDocRef, {
-        name: teamName,
-        joinedAt: serverTimestamp()
-      });
-
-      // ✅ Show waiting screen
-      const waitingContainer = document.createElement('div');
-      waitingContainer.className = "max-w-xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 text-center";
-      waitingContainer.innerHTML = `
-        <h2 class="text-2xl font-bold text-[#1B9AAA]">Team: ${teamName}</h2>
-        <p class="text-xl mt-4">✅ Joined game <strong>${gameCode}</strong></p>
-        <p class="text-lg text-gray-700 mt-2">⏳ Waiting for the game to start...</p>
-      `;
-      document.getElementById('login-screen').innerHTML = '';
-      document.getElementById('login-screen').appendChild(waitingContainer);
-
-      // ✅ Listen for game start and load question types
-      
-      onSnapshot(gameDocRef, (docSnap) => {
-        if (docSnap.exists() && docSnap.data().gameStarted) {
-         allowedTypes = docSnap.data().questionTypes || [];
-          loadNextQuestion(); // ✅ Only after allowedTypes is set
-
-          const endTime = docSnap.data().gameEndsAt;
-          const remaining = Math.floor((endTime - Date.now()) / 1000);
-
-          document.getElementById('login-screen').classList.add('hidden');
-          document.getElementById('game-screen').classList.remove('hidden');
-          document.getElementById('team-display').textContent = `Team: ${teamName}`;
-          teamScore = 0;
-          correctCount = 0;
-          totalQuestions = 0;
-          updateScore();
-
-          // ✅ Now safe to start game
-          loadNextQuestion();
-          startCountdown(remaining);
-        }
-      });
-
-    } catch (error) {
-      console.error("Error joining game:", error);
-    }
-  }
-});
-
-
-// Countdown timer
-function startCountdown(seconds) {
-  let remaining = seconds;
-  const countdownDisplay = document.getElementById('host-countdown');
-
-  countdownInterval = setInterval(() => {
-    remaining--;
-
-    // ✅ Update host countdown if visible
-    if (countdownDisplay) {
-      const mins = Math.floor(remaining / 60);
-      const secs = remaining % 60;
-      countdownDisplay.textContent = `⏳ Game ends in ${mins}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    if (remaining <= 0) {
-      clearInterval(countdownInterval);
-      endGame();
+function startTimer(duration, display, callback) {
+  let time = duration;
+  timerInterval = setInterval(() => {
+    const min = Math.floor(time / 60);
+    const sec = time % 60;
+    display.textContent = `${min}:${sec < 10 ? '0' + sec : sec}`;
+    if (--time < 0) {
+      clearInterval(timerInterval);
+      callback();
     }
   }, 1000);
 }
 
-
-function activateLiveLeaderboard(gameCode) {
-  const teamsRef = collection(db, "games", gameCode, "teams");
-  onSnapshot(teamsRef, (snapshot) => {
-    const liveList = document.getElementById('live-leaderboard');
-    if (!liveList) return;
-
-    liveList.innerHTML = '';
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${data.name}</strong>: ${data.score || 0} pts, ${data.accuracy || 0}% (${data.correct || 0}/${data.total || 0})`;
-      liveList.appendChild(li);
-    });
-  });
+function nextQuestion() {
+  const q = generateQuestion(selectedTypes);
+  questionContainer.innerHTML = `<p>${q.prompt}</p>` + q.options.map((opt, i) =>
+    `<button onclick="checkAnswer(${i}, ${q.correct})">${opt}</button>`).join('');
 }
 
-// Question logic
-function loadNextQuestion() {
-  const { question, correctAnswer, options } = generateQuestion();
-  questionText.textContent = question;
-  answerContainer.innerHTML = '';
-
-  options.forEach(ans => {
-    const btn = document.createElement('button');
-    btn.textContent = ans;
-    btn.className = "bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl text-xl hover:bg-cyan-700 transition";
-    btn.onclick = () => {
-      const isCorrect = ans === correctAnswer;
-      handleAnswer(isCorrect);
-    };
-    answerContainer.appendChild(btn);
-  });
-}
-
-function handleAnswer(isCorrect) {
-  totalQuestions++;
-  if (isCorrect) {
-    correctCount++;
-    teamScore += 10;
-  }
-  updateScore();
-
-  loadNextQuestion();
-}
-
-function updateScore() {
-  scoreDisplay.textContent = `Score: ${teamScore}`;
-}
-
-// End game and show leaderboard
-async function endGame() {
-  clearInterval(countdownInterval);
-  document.getElementById('game-screen').classList.add('hidden');
-  finalLeaderboard.classList.remove('hidden');
-
-  const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-  const gameCode = localStorage.getItem('currentGameCode');
-  const teamName = document.getElementById('team-display').textContent.replace('Team: ', '');
-
-  const teamDocRef = doc(db, "games", gameCode, "teams", teamName);
-  await setDoc(teamDocRef, {
-    score: teamScore,
-    correct: correctCount,
-    total: totalQuestions,
-    accuracy: accuracy
-  }, { merge: true });
-
-  // Host view: show full leaderboard
-  const teamsRef = collection(db, "games", gameCode, "teams");
-  onSnapshot(teamsRef, (snapshot) => {
-    finalLeaderboardList.innerHTML = '';
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${data.name}</strong> — ${data.score} pts, ${data.accuracy}% accuracy (${data.correct}/${data.total})`;
-      finalLeaderboardList.appendChild(li);
-    });
-  });
-}
-
-function formatNumber(num) {
-  return parseFloat(num).toFixed(6).replace(/\.?0+$/, '');
-}
-
-function generateQuestion() {
-  const powersOfTen = [10, 100, 1000, 0.1, 0.01];
-
-  // Define all possible types
- const allTypes = [
-  // Whole numbers (2 digits)
-  { id: 'whole_x10', digits: 2, decimals: 0, operation: '×', factor: 10 },
-  { id: 'whole_x100', digits: 2, decimals: 0, operation: '×', factor: 100 },
-  { id: 'whole_÷10', digits: 2, decimals: 0, operation: '÷', factor: 10 },
-  { id: 'whole_÷100', digits: 2, decimals: 0, operation: '÷', factor: 100 },
-
-  // Decimals to 1dp
-  { id: 'decimal1_x10', digits: 2, decimals: 1, operation: '×', factor: 10 },
-  { id: 'decimal1_x100', digits: 2, decimals: 1, operation: '×', factor: 100 },
-  { id: 'decimal1_÷10', digits: 2, decimals: 1, operation: '÷', factor: 10 },
-  { id: 'decimal1_÷100', digits: 2, decimals: 1, operation: '÷', factor: 100 },
-
-  // Decimals to 2dp
-  { id: 'decimal2_x10', digits: 2, decimals: 2, operation: '×', factor: 10 },
-  { id: 'decimal2_x100', digits: 2, decimals: 2, operation: '×', factor: 100 },
-  { id: 'decimal2_÷10', digits: 2, decimals: 2, operation: '÷', factor: 10 }
-];
-
-  // Filter based on allowedTypes from Firestore
-  const filteredTypes = allTypes.filter(t => allowedTypes.includes(t.id));
-  if (filteredTypes.length === 0) {
-    return { question: "No question types selected.", correctAnswer: "", options: [] };
-  }
-
-  const chosen = filteredTypes[Math.floor(Math.random() * filteredTypes.length)];
-  const { digits, decimals, operation, factor } = chosen;
-  const unknownPosition = Math.floor(Math.random() * 3); // 0 = a, 1 = b, 2 = c
-
-  // Generate digit string
-  const digitStr = Array.from({ length: digits }, () => Math.floor(Math.random() * 9) + 1).join('');
-
-  // Format base number with decimal places
-  let baseStr = digitStr;
-  if (decimals > 0) {
-    baseStr = baseStr.padStart(decimals + 1, '0');
-    baseStr = baseStr.slice(0, baseStr.length - decimals) + '.' + baseStr.slice(baseStr.length - decimals);
-  }
-  const base = parseFloat(baseStr);
-  const result = operation === '×' ? base * factor : base / factor;
-
-  const formattedBase = formatNumber(base);
-  const formattedFactor = formatNumber(factor);
-  const formattedResult = formatNumber(result);
-
-  let question = '';
-  let correctAnswer = '';
-  let options = [];
-
-  if (unknownPosition === 0) {
-    question = `? ${operation} ${formattedFactor} = ${formattedResult}`;
-    correctAnswer = formattedBase;
-    options = generatePlaceValueOptions(correctAnswer, digitStr);
-  } else if (unknownPosition === 1) {
-    question = `${formattedBase} ${operation} ? = ${formattedResult}`;
-    correctAnswer = formattedFactor;
-    options = generatePowerOfTenOptions(correctAnswer);
+function checkAnswer(index, correctIndex) {
+  if (index === correctIndex) {
+    score++;
+    correctStreak++;
+    teamScore.textContent = score;
+    if (correctStreak >= 2 && correctStreak <= 5) showLuckBoxes();
+    else nextQuestion();
   } else {
-    question = `${formattedBase} ${operation} ${formattedFactor} = ?`;
-    correctAnswer = formattedResult;
-    options = generatePlaceValueOptions(correctAnswer, digitStr);
+    correctStreak = 0;
+    nextQuestion();
   }
-
-  return { question, correctAnswer, options };
 }
 
-function generatePowerOfTenOptions(correct) {
-  const allPowers = [10, 100, 1000, 0.1, 0.01];
-  const variations = new Set();
-  variations.add(formatNumber(correct));
-
-  while (variations.size < 4) {
-    const distractor = allPowers[Math.floor(Math.random() * allPowers.length)];
-    variations.add(formatNumber(distractor));
-  }
-
-  return Array.from(variations).sort(() => Math.random() - 0.5);
-}
-
-// Improved options generator: only permutes decimal locations for the same digits
-function generatePlaceValueOptions(correct, digits) {
-  const options = new Set();
-  for (let d = 0; d <= digits.length; d++) {
-    const val = parseFloat(
-      d === digits.length
-        ? digits
-        : digits.slice(0, digits.length - d) + "." + digits.slice(digits.length - d)
-    )
-      .toFixed(3)
-      .replace(/\.?0+$/, "");
-    options.add(val);
-  }
-  // Ensure the correct answer is in the set
-  options.add(correct);
-  // Shuffle and select 4 options
-  return Array.from(options)
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 4);
-  while (variations.size < 4 && attempts < 20) {
-  // generate variants
-}
-
-}
+function showLuckBoxes() {
+  luckBoxes.classList.remove('hidden');
+  luckBoxes.innerHTML = ['Double', 'Triple', 'Halve'].map((label, i) =>
+    `<button onclick="applyLuck('${label}')">${label}
