@@ -64,7 +64,6 @@ function setupCreateGame() {
 
   listenForTeams(gameCode);
   listenForLeaderboard(gameCode);
-  renderPlaceValueTable();
 }
 
 function joinGame() {
@@ -113,8 +112,21 @@ function startGame() {
   });
 
   showScreen('game-screen');
+  renderPlaceValueTable(); // ✅ now only runs on game screen
   startTimer(gameDuration, document.getElementById('game-timer'), endGame);
   nextQuestion();
+}
+
+function renderPlaceValueTable() {
+  const tableDivs = document.querySelectorAll('#place-value-table');
+  tableDivs.forEach(div => {
+    div.innerHTML = `
+      <table style="margin: 0 auto;">
+        <tr><th>Thousands</th><th>Hundreds</th><th>Tens</th><th>Ones</th><th>Decimal</th><th>Tenths</th><th>Hundredths</th></tr>
+        <tr><td>1000</td><td>100</td><td>10</td><td>1</td><td>.</td><td>0.1</td><td>0.01</td></tr>
+      </table>
+    `;
+  });
 }
 
 function listenForGameStart(code) {
