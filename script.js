@@ -103,6 +103,7 @@ function listenForLeaderboard(code) {
 }
 
 function startGame() {
+  console.log("Host started game with code:", gameCode);
   selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
   gameDuration = parseInt(document.getElementById('game-length').value) * 60;
 
@@ -133,9 +134,11 @@ function renderPlaceValueTable() {
 
 
 function listenForGameStart(code) {
+  console.log("Listening for game start on code:", code);
   const gameRef = ref(db, `games/${code}`);
   onValue(gameRef, snapshot => {
     const data = snapshot.val();
+      console.log("Game started:", data);
     if (data?.started) {
       selectedTypes = data.types;
       gameDuration = data.duration;
@@ -149,6 +152,8 @@ function listenForGameStart(code) {
     if (!selectedTypes || selectedTypes.length === 0) {
   selectedTypes = ["Whole x 10", "Whole ÷ 10"]; // or any safe default
 }
+    console.log("Types:", selectedTypes);
+    console.log("Duration:", gameDuration);
 
   });
 }
@@ -170,6 +175,7 @@ function nextQuestion() {
   const q = generateQuestion(selectedTypes);
   if (!q || !q.prompt || !Array.isArray(q.options)) {
     console.warn("Invalid question generated:", q);
+    console.log("Generated question:", q);
     return;
   }
 
