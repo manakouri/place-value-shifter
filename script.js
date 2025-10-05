@@ -269,47 +269,6 @@ function shuffleArray(arr) {
   return arr;
   
 }
-function joinGame() {
-  const code = document.getElementById('join-code').value;
-  const name = document.getElementById('team-name').value;
-  if (!code || !name) return alert("Enter both fields");
-
-  // Write team to Firebase
-  // const teamRef = ref(db, `games/${code}/teams/${name}`);
-  // set(teamRef, { score: 0, joinedAt: Date.now() });
-
-  teams.push(name);
-  teamList.innerHTML = teams.map(t => `<li>${t}</li>`).join('');
-  if (teams.length > 0) startGameBtn.disabled = true; // Only host can start
-}
-
-function listenForTeams(code) {
-  // const teamsRef = ref(db, `games/${code}/teams`);
-  // onValue(teamsRef, snapshot => {
-  //   const data = snapshot.val();
-  //   teams = Object.keys(data || {});
-  //   teamList.innerHTML = teams.map(t => `<li>${t}</li>`).join('');
-  //   startGameBtn.disabled = teams.length === 0;
-  // });
-}
-
-function startGame() {
-  selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
-  gameDuration = parseInt(document.getElementById('game-length').value) * 60;
-
-  // Broadcast game start
-  // const gameRef = ref(db, `games/${gameCode}`);
-  // update(gameRef, {
-  //   started: true,
-  //   types: selectedTypes,
-  //   duration: gameDuration,
-  //   startTime: Date.now()
-  // });
-
-  showScreen('game-screen');
-  startTimer(gameDuration, document.getElementById('game-timer'), endGame);
-  nextQuestion();
-}
 
 function joinGame() {
   const code = document.getElementById('join-code').value;
