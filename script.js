@@ -133,15 +133,15 @@ function renderPlaceValueTable() {
 
 function listenForGameStart(code) {
   const gameRef = ref(db, `games/${code}`);
-  onSnapshot(gameRef, snapshot => {
-    const data = snapshot.data();
+  onValue(gameRef, snapshot => {
+    const data = snapshot.val();
     if (data?.started) {
       selectedTypes = data.types;
       gameDuration = data.duration;
       gameCode = code;
 
-      showScreen('game-screen'); // ✅ move from waiting to game
-      renderPlaceValueTable();   // ✅ show table only here
+      showScreen('game-screen');
+      renderPlaceValueTable();
       startTimer(gameDuration, document.getElementById('game-timer'), endGame);
       nextQuestion();
     }
