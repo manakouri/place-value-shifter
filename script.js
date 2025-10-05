@@ -119,12 +119,6 @@ function startGame() {
   });
 }
 
-  showScreen('game-screen');
-  renderPlaceValueTable(); // ✅ now only runs on game screen
-  startTimer(gameDuration, document.getElementById('game-timer'), endGame);
-  nextQuestion();
-}
-
 function renderPlaceValueTable() {
   const tableDivs = document.querySelectorAll('#place-value-table');
   tableDivs.forEach(div => {
