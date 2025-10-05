@@ -17,6 +17,15 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const analytics = getAnalytics(app);
 
+window.showScreen = showScreen;
+window.startGame = startGame;
+window.joinGame = joinGame;
+window.startChallenge = startChallenge;
+window.startPractice = startPractice;
+window.checkAnswer = checkAnswer;
+window.applyLuck = applyLuck;
+window.checkPracticeAnswer = checkPracticeAnswer;
+
 
 // Global variables
 let gameCode = '';
