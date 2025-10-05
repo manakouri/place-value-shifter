@@ -1,89 +1,121 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2822
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+/* Base Styles */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f5f1e3;
+  color: #050505;
+  touch-action: manipulation;
+}
 
-\f0\fs24 \cf0 body \{\
-  font-family: 'Segoe UI', sans-serif;\
-  margin: 0;\
-  padding: 0;\
-  background-color: #4cc9f0;\
-  color: white;\
-  display: flex;\
-  flex-direction: column;\
-  align-items: center;\
-\}\
-\
-h1, h2, h3 \{\
-  color: #f72585;\
-\}\
-\
-#login-screen, #game-screen \{\
-  padding: 20px;\
-  max-width: 600px;\
-  width: 100%;\
-\}\
-\
-input \{\
-  display: block;\
-  margin: 10px 0;\
-  padding: 10px;\
-  width: 100%;\
-  border: none;\
-  border-radius: 5px;\
-\}\
-\
-button \{\
-  background-color: #7209b7;\
-  color: white;\
-  padding: 10px;\
-  border: none;\
-  border-radius: 5px;\
-  width: 100%;\
-  cursor: pointer;\
-\}\
-\
-button:hover \{\
-  background-color: #3a0ca3;\
-\}\
-\
-#question-area \{\
-  margin-top: 20px;\
-\}\
-\
-#answer-options button \{\
-  margin: 5px;\
-  padding: 10px;\
-  background-color: #4361ee;\
-  border: none;\
-  border-radius: 5px;\
-  width: 100%;\
-\}\
-\
-#place-value-table \{\
-  margin-top: 30px;\
-\}\
-\
-table \{\
-  width: 100%;\
-  border-collapse: collapse;\
-  background-color: #3a0ca3;\
-\}\
-\
-th, td \{\
-  border: 1px solid white;\
-  padding: 10px;\
-  text-align: center;\
-\}\
-\
-.hidden \{\
-  display: none;\
-\}\
-\
-#leaderboard ul \{\
-  list-style: none;\
-  padding: 0;\
-\}\
+.screen {
+  display: none;
+  padding: 2rem;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* Card Layout */
+.card {
+  background-color: #ffffff;
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  margin-bottom: 2rem;
+}
+
+/* Buttons */
+button {
+  background-color: #1b9aaa;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  margin: 0.5rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+              0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+/* Inputs and Selects */
+input, select {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid #dddbcb;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Fieldset */
+fieldset {
+  border: 1px solid #1b9aaa;
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-top: 1rem;
+}
+
+/* Lists */
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background-color: #dddbcb;
+  margin: 0.25rem 0;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+/* Highlight Text */
+.pattern-highlight {
+  color: #7209B7;
+  font-weight: 700;
+}
+
+/* Place Value Table */
+#place-value-table {
+  margin-top: 2rem;
+}
+
+#place-value-table table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: #dddbcb;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+#place-value-table th, #place-value-table td {
+  border: 1px solid #050505;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Luck Boxes */
+#luck-boxes button {
+  background-color: #7209B7;
+  color: #ffffff;
+  margin: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .card {
+    padding: 1.5rem;
+  }
+
+  button {
+    width: 100%;
+    margin: 0.5rem 0;
+  }
 }
