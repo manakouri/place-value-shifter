@@ -74,7 +74,9 @@ function joinGame() {
   const teamRef = ref(db, `games/${code}/teams/${name}`);
   set(teamRef, { score: 0, joinedAt: Date.now() });
 
+  showScreen('waiting-screen');
   listenForGameStart(code);
+
 }
 
 function listenForTeams(code) {
@@ -104,12 +106,18 @@ function startGame() {
   gameDuration = parseInt(document.getElementById('game-length').value) * 60;
 
   const gameRef = ref(db, `games/${gameCode}`);
-  update(gameRef, {
+  updateDoc(gameRef, {
     started: true,
     types: selectedTypes,
     duration: gameDuration,
     startTime: Date.now()
   });
+
+  // ✅ Host stays on create screen
+  startTimer(gameDuration, document.getElementById('create-timer'), () => {
+    document.getElementById('create-timer').textContent = "Game Over";
+  });
+}
 
   showScreen('game-screen');
   renderPlaceValueTable(); // ✅ now only runs on game screen
@@ -131,12 +139,15 @@ function renderPlaceValueTable() {
 
 function listenForGameStart(code) {
   const gameRef = ref(db, `games/${code}`);
-  onValue(gameRef, snapshot => {
-    const data = snapshot.val();
+  onSnapshot(gameRef, snapshot => {
+    const data = snapshot.data();
     if (data?.started) {
       selectedTypes = data.types;
       gameDuration = data.duration;
-      showScreen('game-screen');
+      gameCode = code;
+
+      showScreen('game-screen'); // ✅ move from waiting to game
+      renderPlaceValueTable();   // ✅ show table only here
       startTimer(gameDuration, document.getElementById('game-timer'), endGame);
       nextQuestion();
     }
