@@ -1,3 +1,32 @@
+// Firebase SDK imports
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, set, onValue, update } from "firebase/database";
+import { getAnalytics } from "firebase/analytics";
+
+// Your Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
+  authDomain: "place-value-shifter.firebaseapp.com",
+  projectId: "place-value-shifter",
+  storageBucket: "place-value-shifter.firebasestorage.app",
+  messagingSenderId: "388817467603",
+  appId: "1:388817467603:web:26f323802399f959dd7c26",
+  measurementId: "G-TMZC74RWR2"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getDatabase(app);
+
+
+let db; // Firebase database reference
+
+function initFirebase() {
+  // const app = initializeApp(firebaseConfig);
+  // db = getDatabase(app);
+}
+
 const screens = document.querySelectorAll('.screen');
 function showScreen(id) {
   screens.forEach(s => s.classList.remove('active'));
@@ -241,4 +270,113 @@ function shuffleArray(arr) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+  
+}
+function joinGame() {
+  const code = document.getElementById('join-code').value;
+  const name = document.getElementById('team-name').value;
+  if (!code || !name) return alert("Enter both fields");
+
+  // Write team to Firebase
+  // const teamRef = ref(db, `games/${code}/teams/${name}`);
+  // set(teamRef, { score: 0, joinedAt: Date.now() });
+
+  teams.push(name);
+  teamList.innerHTML = teams.map(t => `<li>${t}</li>`).join('');
+  if (teams.length > 0) startGameBtn.disabled = true; // Only host can start
+}
+
+function listenForTeams(code) {
+  // const teamsRef = ref(db, `games/${code}/teams`);
+  // onValue(teamsRef, snapshot => {
+  //   const data = snapshot.val();
+  //   teams = Object.keys(data || {});
+  //   teamList.innerHTML = teams.map(t => `<li>${t}</li>`).join('');
+  //   startGameBtn.disabled = teams.length === 0;
+  // });
+}
+
+function startGame() {
+  selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
+  gameDuration = parseInt(document.getElementById('game-length').value) * 60;
+
+  // Broadcast game start
+  // const gameRef = ref(db, `games/${gameCode}`);
+  // update(gameRef, {
+  //   started: true,
+  //   types: selectedTypes,
+  //   duration: gameDuration,
+  //   startTime: Date.now()
+  // });
+
+  showScreen('game-screen');
+  startTimer(gameDuration, document.getElementById('game-timer'), endGame);
+  nextQuestion();
+}
+
+function joinGame() {
+  const code = document.getElementById('join-code').value;
+  const name = document.getElementById('team-name').value;
+  if (!code || !name) return alert("Enter both fields");
+
+  const teamRef = ref(db, `games/${code}/teams/${name}`);
+  set(teamRef, { score: 0, joinedAt: Date.now() });
+
+  listenForGameStart(code);
+}
+function listenForTeams(code) {
+  const teamsRef = ref(db, `games/${code}/teams`);
+  onValue(teamsRef, snapshot => {
+    const data = snapshot.val();
+    teams = Object.keys(data || {});
+    teamList.innerHTML = teams.map(t => `<li>${t}</li>`).join('');
+    startGameBtn.disabled = teams.length === 0;
+  });
+}
+function startGame() {
+  selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
+  gameDuration = parseInt(document.getElementById('game-length').value) * 60;
+
+  const gameRef = ref(db, `games/${gameCode}`);
+  update(gameRef, {
+    started: true,
+    types: selectedTypes,
+    duration: gameDuration,
+    startTime: Date.now()
+  });
+
+  showScreen('game-screen');
+  startTimer(gameDuration, document.getElementById('game-timer'), endGame);
+  nextQuestion();
+}
+function listenForGameStart(code) {
+  const gameRef = ref(db, `games/${code}`);
+  onValue(gameRef, snapshot => {
+    const data = snapshot.val();
+    if (data?.started) {
+      selectedTypes = data.types;
+      gameDuration = data.duration;
+      showScreen('game-screen');
+      startTimer(gameDuration, document.getElementById('game-timer'), endGame);
+      nextQuestion();
+    }
+  });
+}
+function updateScore(teamName, code, newScore) {
+  const scoreRef = ref(db, `games/${code}/teams/${teamName}/score`);
+  set(scoreRef, newScore);
+}
+
+function listenForLeaderboard(code) {
+  const teamsRef = ref(db, `games/${code}/teams`);
+  onValue(teamsRef, snapshot => {
+    const data = snapshot.val();
+    const sorted = Object.entries(data || {}).sort((a, b) => b[1].score - a[1].score);
+    leaderboard.innerHTML = sorted.map(([name, info]) =>
+      `<li>${name}: ${info.score}</li>`).join('');
+  });
+}
+function resetGame(code) {
+  const gameRef = ref(db, `games/${code}`);
+  set(gameRef, null); // Clear game data
 }
