@@ -1,9 +1,4 @@
-// Firebase SDK imports
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, onValue, update } from "firebase/database";
-import { getAnalytics } from "firebase/analytics";
-
-// Your Firebase config
+// Firebase CDN setup (make sure <script> tags are in your HTML head)
 const firebaseConfig = {
   apiKey: "AIzaSyAakXPbECFWlXMjG-EpB5_NSPcDWK0BkjY",
   authDomain: "place-value-shifter.firebaseapp.com",
@@ -14,15 +9,18 @@ const firebaseConfig = {
   measurementId: "G-TMZC74RWR2"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const analytics = firebase.analytics();
 
-function initFirebase() {
-  // const app = initializeApp(firebaseConfig);
-  // db = getDatabase(app);
-}
+// Global variables
+let gameCode = '';
+let teams = [];
+let score = 0;
+let correctStreak = 0;
+let gameDuration = 0;
+let selectedTypes = [];
+let timerInterval;
 
 const screens = document.querySelectorAll('.screen');
 function showScreen(id) {
@@ -31,17 +29,13 @@ function showScreen(id) {
   if (id === 'create-game') setupCreateGame();
   if (id === 'practice-mode') setupPracticeOptions();
 }
-const gameCodeSpan = document.getElementById('game-code');
-const questionTypesDiv = document.getElementById('question-types');
-const teamList = document.getElementById('team-list');
-const startGameBtn = document.getElementById('start-game-btn');
 
-let gameCode = '';
-let teams = [];
 
 function setupCreateGame() {
   gameCode = Math.floor(1000000 + Math.random() * 9000000).toString();
-  gameCodeSpan.textContent = gameCode;
+  document.getElementById('game-code').textContent = gameCode;
+
+  const questionTypesDiv = document.getElementById('question-types');
   questionTypesDiv.innerHTML = '';
   const types = [
     "Whole x 10", "Whole x 100", "Whole ÷ 10", "Whole ÷ 100",
@@ -53,33 +47,61 @@ function setupCreateGame() {
     label.innerHTML = `<input type="checkbox" value="${type}" /> ${type}`;
     questionTypesDiv.appendChild(label);
   });
+
+  listenForTeams(gameCode);
+  listenForLeaderboard(gameCode);
   renderPlaceValueTable();
 }
+
 function joinGame() {
   const code = document.getElementById('join-code').value;
   const name = document.getElementById('team-name').value;
   if (!code || !name) return alert("Enter both fields");
 
-  // TODO: Firebase write team name to game code
-  teams.push(name);
-  teamList.innerHTML = teams.map(t => `<li>${t}</li>`).join('');
-  if (teams.length > 0) startGameBtn.disabled = false;
+  const teamRef = firebase.database().ref(`games/${code}/teams/${name}`);
+  teamRef.set({ score: 0, joinedAt: Date.now() });
+
+  listenForGameStart(code);
 }
-let gameDuration = 0;
-let selectedTypes = [];
-let timerInterval;
+
+function listenForTeams(code) {
+  const teamsRef = firebase.database().ref(`games/${code}/teams`);
+  teamsRef.on('value', snapshot => {
+    const data = snapshot.val();
+    teams = Object.keys(data || {});
+    const teamList = document.getElementById('team-list');
+    teamList.innerHTML = teams.map(t => `<li>${t}</li>`).join('');
+    document.getElementById('start-game-btn').disabled = teams.length === 0;
+  });
+}
+
+function listenForLeaderboard(code) {
+  const leaderboardRef = firebase.database().ref(`games/${code}/teams`);
+  leaderboardRef.on('value', snapshot => {
+    const data = snapshot.val();
+    const sorted = Object.entries(data || {}).sort((a, b) => b[1].score - a[1].score);
+    const leaderboard = document.getElementById('leaderboard');
+    leaderboard.innerHTML = sorted.map(([name, info]) =>
+      `<li>${name}: ${info.score}</li>`).join('');
+  });
+}
 
 function startGame() {
   selectedTypes = Array.from(document.querySelectorAll('#question-types input:checked')).map(cb => cb.value);
   gameDuration = parseInt(document.getElementById('game-length').value) * 60;
 
-  const gameRef = ref(db, `games/${gameCode}`);
-  update(gameRef, {
+  const gameRef = firebase.database().ref(`games/${gameCode}`);
+  gameRef.update({
     started: true,
     types: selectedTypes,
     duration: gameDuration,
     startTime: Date.now()
   });
+
+  showScreen('game-screen');
+  startTimer(gameDuration, document.getElementById('game-timer'), endGame);
+  nextQuestion();
+}
 
 function startTimer(duration, display, callback) {
   let time = duration;
@@ -93,8 +115,6 @@ function startTimer(duration, display, callback) {
     }
   }, 1000);
 }
-let score = 0;
-let correctStreak = 0;
 
 function nextQuestion() {
   const q = generateQuestion(selectedTypes);
@@ -108,6 +128,7 @@ function checkAnswer(index, correctIndex) {
     score++;
     correctStreak++;
     document.getElementById('team-score').textContent = score;
+    updateScore(score);
     if (correctStreak >= 2 && correctStreak <= 5) showLuckBoxes();
     else nextQuestion();
   } else {
@@ -115,6 +136,7 @@ function checkAnswer(index, correctIndex) {
     nextQuestion();
   }
 }
+
 function showLuckBoxes() {
   const luckBoxes = document.getElementById('luck-boxes');
   luckBoxes.classList.remove('hidden');
@@ -131,27 +153,14 @@ function applyLuck(type) {
   if (type === 'Triple') score *= 3;
   if (type === 'Halve') score = Math.floor(score / 2);
   document.getElementById('team-score').textContent = score;
+  updateScore(score);
   document.getElementById('luck-boxes').classList.add('hidden');
   correctStreak = 0;
   nextQuestion();
 }
 
-function endGame() {
-  const results = document.getElementById('final-results');
-  results.classList.remove('hidden');
-  results.innerHTML = `<p>Final Score: ${score}</p><p>Accuracy: ${Math.round((score / (score + 3)) * 100)}%</p>`;
-}
-function renderPlaceValueTable() {
-  const container = document.getElementById('place-value-table');
-  container.innerHTML = `
-    <table>
-      <tr><th>Thousands</th><th>Hundreds</th><th>Tens</th><th>Ones</th><th>0.1</th><th>0.01</th></tr>
-      <tr><td>1000</td><td>100</td><td>10</td><td>1</td><td>0.1</td><td>0.01</td></tr>
-    </table>
-  `;
-}
 function setupPracticeOptions() {
-  practiceContainer.innerHTML = '';
+  document.getElementById('practice-container').innerHTML = '';
   renderPlaceValueTable();
 }
 
@@ -159,36 +168,38 @@ function startChallenge() {
   score = 0;
   correctStreak = 0;
   startTimer(180, document.getElementById('game-timer'), () => {
-    practiceContainer.innerHTML = `<p>Challenge Over! Score: ${score}</p>`;
+    document.getElementById('practice-container').innerHTML = `<p>Challenge Over! Score: ${score}</p>`;
   });
   nextPracticeQuestion();
 }
 
 function startPractice() {
-  selectedTypes = ["Whole x 10", "1dp ÷ 10"]; // Example default
+  selectedTypes = ["Whole x 10", "1dp ÷ 10"]; // Default fallback
   nextPracticeQuestion();
 }
 
 function nextPracticeQuestion() {
   const q = generateQuestion(selectedTypes);
-  practiceContainer.innerHTML = `<p>${q.prompt}</p>` + q.options.map((opt, i) =>
+  const container = document.getElementById('practice-container');
+  container.innerHTML = `<p>${q.prompt}</p>` + q.options.map((opt, i) =>
     `<button onclick="checkPracticeAnswer(${i}, ${q.correct}, '${q.prompt}', ${JSON.stringify(q.options)})">${opt}</button>`).join('');
 }
 
 function checkPracticeAnswer(index, correctIndex, prompt, options) {
+  const container = document.getElementById('practice-container');
   if (index === correctIndex) {
-    practiceContainer.innerHTML = `<p>Correct!</p>`;
+    container.innerHTML = `<p>Correct!</p>`;
     setTimeout(nextPracticeQuestion, 1000);
   } else {
-    practiceContainer.innerHTML = `<p>Try again: ${prompt}</p>` + options.map((opt, i) =>
+    container.innerHTML = `<p>Try again: ${prompt}</p>` + options.map((opt, i) =>
       `<button onclick="checkPracticeAnswer(${i}, ${correctIndex}, '${prompt}', ${JSON.stringify(options)})">${opt}</button>`).join('');
   }
 }
+
 function generateQuestion(selectedTypes) {
   const type = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
   let baseNumber, power, operation, prompt, correctAnswer, options = [];
 
-  // Helper: generate number based on type
   function getBase(type) {
     if (type.includes("Whole")) return Math.floor(Math.random() * 90 + 10); // 10–99
     if (type.includes("1dp")) return +(Math.random() * 9 + 1).toFixed(1); // 1.0–9.9
@@ -199,7 +210,6 @@ function generateQuestion(selectedTypes) {
   if (type.includes("x")) {
     operation = "×";
     power = type.includes("100") ? 100 : 10;
-    if (type.includes("1000")) power = 1000;
     const result = +(baseNumber * power).toFixed(2);
     const missing = ["a", "b", "c"][Math.floor(Math.random() * 3)];
     if (missing === "a") {
@@ -235,7 +245,6 @@ function generateQuestion(selectedTypes) {
     }
   }
 
-  // Shuffle options
   const correctIndex = Math.floor(Math.random() * 4);
   options.splice(correctIndex, 0, correctAnswer);
 
@@ -246,7 +255,6 @@ function generateQuestion(selectedTypes) {
   };
 }
 
-// Distractors with same digits, different place values
 function generateDistractors(correct, base) {
   const digits = base.toString().replace('.', '').split('');
   const distractors = new Set();
@@ -258,64 +266,30 @@ function generateDistractors(correct, base) {
   return Array.from(distractors);
 }
 
-// Distractors for powers of 10
 function generatePowerDistractors(correct) {
   const powers = [0.01, 0.1, 10, 100, 1000];
   return powers.filter(p => p !== correct).slice(0, 3);
 }
 
-// Shuffle helper
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
-  
 }
 
-function listenForTeams(code) {
-  const teamsRef = ref(db, `games/${code}/teams`);
-  onValue(teamsRef, snapshot => {
-    const data = snapshot.val();
-    teams = Object.keys(data || {});
-    teamList.innerHTML = teams.map(t => `<li>${t}</li>`).join('');
-    startGameBtn.disabled = teams.length === 0;
-  });
+function updateScore(newScore) {
+  const code = gameCode;
+  const name = document.getElementById('team-name')?.value || "Practice";
+  const scoreRef = firebase.database().ref(`games/${code}/teams/${name}/score`);
+  scoreRef.set(newScore);
 }
 
-  showScreen('game-screen');
-  startTimer(gameDuration, document.getElementById('game-timer'), endGame);
-  nextQuestion();
-}
-function listenForGameStart(code) {
-  const gameRef = ref(db, `games/${code}`);
-  onValue(gameRef, snapshot => {
-    const data = snapshot.val();
-    if (data?.started) {
-      selectedTypes = data.types;
-      gameDuration = data.duration;
-      showScreen('game-screen');
-      startTimer(gameDuration, document.getElementById('game-timer'), endGame);
-      nextQuestion();
-    }
-  });
-}
-function updateScore(teamName, code, newScore) {
-  const scoreRef = ref(db, `games/${code}/teams/${teamName}/score`);
-  set(scoreRef, newScore);
-}
-
-function listenForLeaderboard(code) {
-  const teamsRef = ref(db, `games/${code}/teams`);
-  onValue(teamsRef, snapshot => {
-    const data = snapshot.val();
-    const sorted = Object.entries(data || {}).sort((a, b) => b[1].score - a[1].score);
-    leaderboard.innerHTML = sorted.map(([name, info]) =>
-      `<li>${name}: ${info.score}</li>`).join('');
-  });
-}
-function resetGame(code) {
-  const gameRef = ref(db, `games/${code}`);
-  set(gameRef, null); // Clear game data
+function endGame() {
+  const results = document.getElementById('final-results');
+  results.classList.remove('hidden');
+  const attempted = score + 3; // rough estimate for demo
+  const accuracy = Math.round((score / attempted) * 100);
+  results.innerHTML = `<p>Final Score: ${score}</p><p>Accuracy: ${accuracy}%</p>`;
 }
