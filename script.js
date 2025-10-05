@@ -134,29 +134,24 @@ function renderPlaceValueTable() {
 
 
 function listenForGameStart(code) {
-  console.log("Listening for game start on code:", code);
   const gameRef = ref(db, `games/${code}`);
   onValue(gameRef, snapshot => {
     const data = snapshot.val();
-      console.log("Game started:", data);
-    if (data?.started) {
+    if (data?.started && data.duration > 0) {
       selectedTypes = data.types;
       gameDuration = data.duration;
       gameCode = code;
+
+      console.log("Starting game with duration:", gameDuration);
 
       showScreen('game-screen');
       renderPlaceValueTable();
       startTimer(gameDuration, document.getElementById('game-timer'), endGame);
       nextQuestion();
     }
-    if (!selectedTypes || selectedTypes.length === 0) {
-  selectedTypes = ["Whole x 10", "Whole ÷ 10"]; // or any safe default
-}
-    console.log("Types:", selectedTypes);
-    console.log("Duration:", gameDuration);
-
   });
 }
+
 
 function startTimer(duration, display, callback) {
   let time = duration;
