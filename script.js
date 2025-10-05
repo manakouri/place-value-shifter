@@ -154,6 +154,7 @@ function listenForGameStart(code) {
 
 
 function startTimer(duration, display, callback) {
+  console.log("Starting timer with:", duration);
   let time = duration;
   timerInterval = setInterval(() => {
     const min = Math.floor(time / 60);
@@ -347,6 +348,7 @@ function shuffleArray(arr) {
 }
 
 function updateScore(newScore) {
+  console.log("Updating score for:", teamName);
   const code = gameCode;
   const name = document.getElementById('team-name')?.value || "Practice";
   const scoreRef = ref(db, `games/${code}/teams/${teamName}/score`);
